@@ -1,0 +1,397 @@
+/* ===== Reset general ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+  background-color: #ffffff;
+  color: #333;
+  min-height: 100vh;
+}
+
+/* ===== Header ===== */
+header {
+  background-color: #ffffff;
+  color: #000000;
+  padding: 0.8rem 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+header .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: auto;
+  padding: 0 1rem;
+}
+
+/* Logo a la izquierda */
+header h1 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: default;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* Contenedor central para la búsqueda */
+.search-room {
+  flex: 1; /* Ocupa el espacio restante */
+  display: flex;
+  align-items: center;
+  max-width: 500px; /* Controla el ancho máximo */
+  margin: 0 2rem;
+  position: relative;
+}
+
+/* Input de búsqueda: largo, con padding para el botón */
+.search-room input {
+  width: 100%;
+  padding: 0.5rem 2.5rem 0.5rem 0.8rem; /* derecha espacio para botón */
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  color: #000;
+  font-size: 1rem;
+}
+
+/* Botón búsqueda sobrepuesto al input, a la derecha */
+.search-room button {
+  position: absolute;
+  right: 5px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  color: #333;
+  font-size: 1.2rem;
+  padding: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Contenedor de favoritos y perfil a la derecha */
+.user-control {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  flex-shrink: 0;
+}
+
+/* Link favoritos */
+.user-control a.nav-link {
+  color: #000;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.user-control a.nav-link:hover {
+  text-decoration: underline;
+}
+
+/* Perfil */
+.user-profile img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: block;
+  object-fit: cover;
+  user-select: none;
+}
+
+/* Menú desplegable perfil */
+.user-profile .menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  background-color: white;
+  color: black;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  z-index: 100;
+}
+
+.user-profile:hover .menu {
+  display: block;
+}
+
+.user-profile .menu a {
+  display: block;
+  padding: 0.3rem 1rem;
+  text-decoration: none;
+  color: #333;
+}
+
+.user-profile .menu a:hover {
+  background-color: #f1f1f1;
+}
+
+/* Responsive para pantallas chicas */
+@media (max-width: 768px) {
+  header .container {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .search-room {
+    max-width: 100%;
+    margin: 0;
+  }
+  
+  .user-control {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* ===== Filtros ===== */
+.filter {
+  background-color: #f9f9f9;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  margin-bottom: 2rem; /* separa filtros de las tarjetas */
+  /* Para hacer barra de navegación vertical (columnas) */
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1; /* que cada filtro ocupe igual espacio */
+}
+
+.filter-group label {
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.filter-group select {
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+}
+
+#date-range {
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  font-size: 1rem;
+  width: 100%;
+  max-width: 300px;
+}
+
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  header .container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .search-room input {
+    width: 100%;
+  }
+
+  .filter {
+    flex-direction: column;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+}
+
+#room-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 20px;
+}
+
+.room-card {
+  background-color: #222;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+  color: #fff;
+  overflow: hidden;
+  transition: transform 0.3s;
+}
+
+.room-card:hover {
+  transform: translateY(-5px);
+}
+
+.room-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.room-card .info {
+  padding: 15px;
+}
+
+#pagination-controls {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 20px 0;
+  gap: 8px;
+}
+
+#pagination-controls button {
+  padding: 8px 14px;
+  border: none;
+  background-color: #444;
+  color: white;
+  cursor: pointer;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+#pagination-controls button:hover:not(:disabled) {
+  background-color: #666;
+}
+
+#pagination-controls button:disabled {
+  background-color: #333;
+  cursor: not-allowed;
+}
+
+#pagination-controls .active {
+  background-color: #00bcd4;
+  color: #000;
+}
+
+.reserve-btn,
+.reserve-myself-btn {
+  display: inline-block;
+  padding: 10px 16px;
+  margin: 8px 4px 0 0;
+  font-size: 14px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.reserve-btn {
+  background-color: #4CAF50; /* verde */
+  color: white;
+}
+
+.reserve-myself-btn {
+  background-color: #2196F3; /* azul */
+  color: white;
+}
+
+.reserve-btn:hover,
+.reserve-myself-btn:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+.reserve-btn:active,
+.reserve-myself-btn:active {
+  transform: scale(0.98);
+}
+
+/* Estilo base del fondo del modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Fondo oscuro semitransparente */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Ocultar modal por defecto */
+.hidden {
+  display: none;
+}
+
+/* Contenido interno del modal */
+.modal-content {
+  background-color: #1e1e1e; /* Fondo oscuro para coherencia con tu estilo */
+  color: #f0f0f0;
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+  animation: fadeIn 0.3s ease;
+}
+
+/* Animación de entrada */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Inputs y labels dentro del modal */
+.modal-content label {
+  display: block;
+  margin-top: 15px;
+  font-size: 0.95rem;
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+  background-color: #2a2a2a;
+  color: #fff;
+}
+
+.modal-content input:focus {
+  outline: 2px solid #4CAF50;
+}
+
+/* Botones */
+.modal-content button {
+  margin-top: 20px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.modal-content button[type="submit"] {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.modal-content button[type="button"] {
+  background-color: #555;
+  color: white;
+  margin-top: 10px;
+}
+
+.modal-content button:hover {
+  opacity: 0.9;
+}

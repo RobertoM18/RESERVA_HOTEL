@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spondylus Hotel</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <link rel="stylesheet" href="room.css">
+    <script src="room.js"></script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>SpondylusHotel</h1>
+            <div class="search-room">
+                <input type="text" id="search-input" placeholder="Buscar"/>
+                <button id="search-btn"> <i class="fas fa-search"></i></button>
+            </div>
+
+            <div class="user-control">
+                <button id="theme-toggle"><i class="fas fa-moon"></i></button>
+                <a href="../Reserva/reserva.html" class="nav-link">Mis Reservas</a>
+                <div class="user-profile">
+                    <img src="../assets/img/profile-user.png" alt="User Profile">
+                    <div class="menu">
+                        <a href="#">Perfil</a>
+                        <a href="#">Configuracion</a>
+                        <a href="#" id="logout--btn">Cerrar Sesion</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="filter">
+                <div class="filter-group">
+                    <label for="room-type">Tipo:</label>
+                    <select id="room-type">
+                        <option value="">Todos</option>
+                        <option value="individual">Individual</option>
+                        <option value="doble">Doble</option>
+                        <option value="suite">Suite</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="price-range">Precio:</label>
+                    <select id="price-range">
+                        <option value="">Todos</option>
+                        <option value="0-50">$0 - $50</option>
+                        <option value="51-100">$51 - $100</option>
+                        <option value="101-200">$101 - $200</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="categoria">Categoria</label>
+                    <select id="categoria">
+                    <option value="">Todas</option>
+                    <option value="3">3★</option>
+                    <option value="4">4★</option>
+                    <option value="5">5★</option>
+                    </select>
+                </div>  
+                <div class="filter-group">
+                <label for="date-range">Fechas de estadía:</label>
+                <input type="text" id="date-range" placeholder="Seleccionar fechas de entrada y salida" />
+                </div>
+            </div>
+            <!--Contenedor de las tarjetas de habitaciones-->
+            <div id="room-container" class="room-container"></div>
+            <!--Paginacion-->
+            <div id="pagination-controls" class="pagination"></div>
+        </div>
+    </main>
+
+            <div id="guest-modal" class="modal hidden">
+        <div class="modal-content">
+            <span id="close-modal" class="close">&times;</span>
+            <h2>Datos del Huésped</h2>
+            <form id="guest-form">
+            <input type="text" id="first-name" placeholder="Nombre" required />
+            <input type="text" id="last-name" placeholder="Apellido" required />
+            <input type="text" id="dni" placeholder="DNI o Pasaporte" required />
+            <input type="email" id="email" placeholder="Correo electrónico" />
+            <input type="text" id="phone" placeholder="Teléfono" />
+            <input type="text" id="nationality" placeholder="Nacionalidad" />
+            <button type="submit">Confirmar Reserva</button>
+            </form>
+        </div>
+        </div>
+
+        <div id="self-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Reservar para mí</h2>
+            <form id="self-form">
+            <label>Fecha de entrada</label>
+            <input type="date" id="self-checkin" required>
+            <label>Fecha de salida</label>
+            <input type="date" id="self-checkout" required>
+            <label>¿Cuántas personas?</label>
+            <input type="number" id="self-people" min="1" required>
+            <button type="submit">Reservar</button>
+            <button type="button" id="close-self-modal">Cancelar</button>
+            </form>
+        </div>
+        </div>
+
+        
+</body>
+</html>

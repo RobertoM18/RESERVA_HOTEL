@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel de Administración</title>
+  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+  <div id="admin-panel" style="display: none;">
+    <header>
+      <h1><i class="fas fa-tools"></i> Panel de Administración</h1>
+      <button id="logout"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
+    </header>
+
+    <main>
+
+      <!-- Sección: Crear habitación -->
+      <section class="card">
+        <h2><i class="fas fa-bed"></i> Crear nueva habitación</h2>
+        <form id="form-crear-habitacion">
+          <input type="text" id="name" placeholder="Nombre de la habitación" required>
+          <input type="number" id="price" placeholder="Precio por noche" required>
+          <input type="number" id="ability" placeholder="Capacidad de personas" required>
+          <input type="text" id="imagen" placeholder="URL de la imagen" required>
+          <input type="number" id="category" placeholder="Categoría (1 a 5 estrellas)" required>
+          <input type="number" id="type_id" placeholder="ID del tipo de habitación" required>
+          <button type="submit"><i class="fas fa-plus-circle"></i> Crear habitación</button>
+        </form>
+      </section>
+
+      <!-- Sección: Estadísticas -->
+      <section class="card">
+        <h2><i class="fas fa-chart-line"></i> Estadísticas del sistema</h2>
+        <button id="btn-estadisticas"><i class="fas fa-chart-pie"></i> Ver estadísticas</button>
+        <div id="estadisticas" style="display: none;"></div>
+      </section>
+
+      <!-- Sección: Gestión de usuarios -->
+      <section class="card">
+        <h2><i class="fas fa-users-cog"></i> Gestión de Usuarios</h2>
+        <button id="btn-cargar-usuarios">Cargar usuarios</button>
+        <button id="btn-nuevo-usuario">➕ Nuevo usuario</button>
+
+        <form id="form-crear-usuario" class="formulario-usuario" style="display: none;">
+          <h3><i class="fas fa-user-plus"></i> Crear nuevo usuario</h3>
+          <div class="form-row">
+            <input type="text" id="nuevo-nombre" placeholder="Nombre de usuario" required>
+            <input type="email" id="nuevo-email" placeholder="Correo electrónico" required>
+          </div>
+          <div class="form-row">
+            <input type="password" id="nuevo-password" placeholder="Contraseña" required>
+            <input type="text" id="nuevo-phone" placeholder="Teléfono">
+          </div>
+          <div class="form-row">
+            <select id="nuevo-rol">
+              <option value="1">Usuario</option>
+              <option value="3">Administrador</option>
+            </select>
+            <button type="submit"><i class="fas fa-check"></i> Crear</button>
+          </div>
+        </form>
+
+        <div class="usuario-search-container">
+          <input type="text" id="input-buscar-usuario" placeholder="Buscar por nombre o correo" style="margin: 10px 0; width: 50%;">
+          <button id="btn-buscar-usuario">Buscar</button>
+        </div>
+
+        <div class="seccion-usuarios" style="display: none;">
+          <table id="tabla-usuarios">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Teléfono</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="pagination" id="usuarios-pagination"></div>
+        </div>
+      </section>
+
+      <!-- Sección: Bitácora -->
+      <section class="card">
+        <h2><i class="fas fa-clipboard-list"></i> Bitácora del sistema</h2>
+        <button id="btn-cargar-bitacora">Ver bitácora</button>
+        <div id="seccion-bitacora" style="display: none;">
+          <!-- 🔍 Buscador de bitácora -->
+          <div class="bitacora-search-container">
+            <input type="text" id="input-buscar-bitacora" placeholder="Buscar por usuario o acción...">
+            <button id="btn-buscar-bitacora">Buscar</button>
+          </div>
+
+          <table id="tabla-bitacora">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Acción</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div id="paginacion-bitacora" class="pagination" style="margin-top: 15px;">
+            <button id="bitacora-first-page">⏮️</button>
+            <button id="bitacora-prev-page">◀️</button>
+            <div id="bitacora-pagination-numbers" style="display: inline-flex; gap: 5px;"></div>
+            <button id="bitacora-next-page">▶️</button>
+            <button id="bitacora-last-page">⏭️</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
