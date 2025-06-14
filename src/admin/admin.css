@@ -312,14 +312,38 @@ input:focus, select:focus {
   text-align: left;
 }
 
+#tabla-bitacora td:nth-child(3),
+#tabla-bitacora td:nth-child(4) {
+  white-space: nowrap;
+}
+
+#tabla-bitacora td:nth-child(9),
+#tabla-bitacora td:nth-child(10) {
+  white-space: normal;
+  word-break: break-word;
+  max-width: 250px;
+}
+
+#seccion-bitacora {
+  overflow-x: auto;
+}
+
+
 #tabla-bitacora th {
   background-color: #2a2a2a;
   font-weight: bold;
 }
 
 #tabla-bitacora tr:hover {
-  background-color: #333;
+  background-color: #2a2a2a;
 }
+
+#tabla-bitacora td:last-child {
+  font-style: italic;
+  color: #b0e0e6;
+}
+
+
 
 #btn-cargar-bitacora {
   background-color: #444;
@@ -509,4 +533,25 @@ input:focus, select:focus {
 
 #btn-buscar-bitacora:hover {
   background-color: #357ABD;
+}
+/* 📱 Estilo responsivo para móviles y tablets */
+@media (max-width: 768px) {
+  .card {
+    padding: 15px;
+  }
+
+  #tabla-bitacora th,
+  #tabla-bitacora td {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  #input-buscar-bitacora {
+    width: 100%;
+  }
+
+  .bitacora-search-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }

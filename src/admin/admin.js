@@ -11,10 +11,20 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("admin-panel").style.display = "block";
   const userId = user.id;
 
-  document.getElementById("logout").addEventListener("click", () => {
-    localStorage.clear();
-    window.location.href = "../login/login.html";
-  });
+  //Logout
+      document.getElementById("logout").addEventListener("click", async () => {
+      try {
+        await fetch(`http://localhost:3000/api/users/logout?userId=${user.id}&username=${user.newUsername}`, {
+          method: "POST"
+        });
+      } catch (err) {
+        console.error("Error al registrar logout:", err);
+      }
+
+      localStorage.clear();
+      window.location.href = "../login/login.html";
+    });
+
 
   // ================== CREAR HABITACIÓN ==================
   document.getElementById("form-crear-habitacion").addEventListener("submit", async (e) => {
@@ -30,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     try {
-      const res = await fetch(`http://localhost:3000/api/admin/crear-habitacion?userId=${userId}`, {
+        const res = await fetch(`http://localhost:3000/api/admin/crear-habitacion?userId=${userId}&username=${user.username}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(habitacion)
@@ -65,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function cargarEstadisticas() {
     try {
-      const res = await fetch(`http://localhost:3000/api/admin/estadisticas?userId=${userId}`);
+      const res = await fetch(`http://localhost:3000/api/admin/estadisticas?userId=${userId}&username=${user.username}`);
       const stats = await res.json();
       if (!res.ok) throw new Error(stats.error || "Acceso denegado");
       divEstadisticas.innerHTML = `
@@ -112,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function cargarUsuariosPaginados() {
     try {
-      const res = await fetch(`http://localhost:3000/api/admin/usuarios-paginados?page=${usuariosPaginaActual}&limit=10&search=${encodeURIComponent(filtroBusqueda)}&userId=${userId}`);
+      const res = await fetch(`http://localhost:3000/api/admin/usuarios-paginados?page=${usuariosPaginaActual}&limit=10&search=${encodeURIComponent(filtroBusqueda)}&userId=${userId}&username=${user.username}`);
       const { usuarios, totalPages, currentPage } = await res.json();
       usuariosPaginaActual = currentPage;
       usuariosTotalPaginas = totalPages;
@@ -211,7 +221,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const rol_id = document.querySelector(`.edit-rol[data-id="${id}"]`).value;
 
         try {
-          const res = await fetch(`http://localhost:3000/api/admin/usuarios/${id}?userId=${userId}`, {
+          const res = await fetch(`http://localhost:3000/api/admin/usuarios/${id}?userId=${userId}&username=${user.username}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ newusername: username, email, phone, rol_id: parseInt(rol_id) })
@@ -239,7 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!confirm("¿Estás seguro de eliminar este usuario?")) return;
 
         try {
-          const res = await fetch(`http://localhost:3000/api/admin/usuarios/${id}?userId=${userId}`, {
+          const res = await fetch(`http://localhost:3000/api/admin/usuarios/${id}?userId=${userId}&username=${user.username}`, {
             method: "DELETE"
           });
           if (!res.ok) throw new Error("Error al eliminar");
@@ -275,7 +285,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const res = await fetch(`http://localhost:3000/api/admin/usuarios?userId=${userId}`, {
+      const res = await fetch(`http://localhost:3000/api/admin/usuarios?userId=${userId}&username=${user.username}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ newusername: newUsername, email, newpassword: password, phone, rol_id })
@@ -324,16 +334,24 @@ document.addEventListener("DOMContentLoaded", () => {
         const tbody = document.querySelector("#tabla-bitacora tbody");
         tbody.innerHTML = "";
 
-        data.registros.forEach(r => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${r.id}</td>
-            <td>${r.username}</td>
-            <td>${r.accion}</td>
-            <td>${new Date(r.fecha).toLocaleString()}</td>
-          `;
-          tbody.appendChild(tr);
-        });
+        tbody.innerHTML = "";
+          data.registros.forEach((r, index) => {
+            const numero = (paginaActual - 1) * 10 + index + 1;
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${numero}</td>
+              <td>${r.username}</td>
+              <td>${r.fecha_ingreso ? new Date(r.fecha_ingreso).toLocaleString() : '-'}</td>
+              <td>${r.fecha_salida ? new Date(r.fecha_salida).toLocaleString() : '-'}</td>
+              <td>${r.navegador}</td>
+              <td>${r.ip_address}</td>
+              <td>${r.pc_name}</td>
+              <td>${r.tabla_afectada}</td>
+              <td>${r.tipo_accion}</td>
+              <td>${r.descripcion}</td>
+            `;
+            tbody.appendChild(tr);
+          });
 
         totalPaginas = data.totalPages;
         paginaActual = data.currentPage;

@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // Validaciones simples
       if (!username) {
-        document.getElementById('usernameError').textContent = "Nombre de usuario obligatorio";
+        document.getElementById('usernameError').textContent = "Nombre de usuario obligatorio";   
         valid = false;
       }
       if (!password) {
@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Guardar el usuario en localStorage
         localStorage.setItem("user", JSON.stringify({
           id: data.user.id,
-          newUsername: data.user.newUsername,
+          username: data.user.username,
           guest_id: data.user.guest_id, // ✅ asegúrate que viene del backend
           rol_id: data.user.rol_id
         }));

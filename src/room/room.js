@@ -14,20 +14,41 @@ document.addEventListener("DOMContentLoaded", async function () {
   const pagination = document.getElementById('pagination-controls');
   const searchInput = document.getElementById("search-input");
   const searchBtn = document.getElementById("search-btn");
-
+  const user = JSON.parse(localStorage.getItem("user"));
   let currentPage = 1;
   const roomsPerPage = 8;
   let totalPages = 1;
 
   const logoutBtn = document.getElementById('logout--btn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', function (event) {
-      event.preventDefault();
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
-      window.location.href = "../login/login.html";
-    });
-  }
+
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', async function (event) {
+    event.preventDefault();
+
+    if (!user || !user.id || !user.username) {
+      console.warn("No se encontró el usuario en localStorage.");
+    } else {
+      try {
+        const response = await fetch(`http://localhost:3000/api/users/logout?userId=${user.id}&username=${user.username}`, {
+          method: "POST"
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Error en logout:", errorText);
+        } else {
+          console.log("Logout registrado correctamente.");
+        }
+      } catch (error) {
+        console.error("Error al enviar logout:", error);
+      }
+    }
+
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    window.location.href = "../login/login.html";
+  });
+}
 
   function renderPagination() {
     pagination.innerHTML = "";

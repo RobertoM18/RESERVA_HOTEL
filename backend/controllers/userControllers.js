@@ -1,54 +1,87 @@
 const pool = require('../db/connection');
 const bcrypt = require('bcrypt');
+const registrarBitacora = require('../utils/bitacoraLogger');
 
-//Registro de Usuario
-const registerUser = async (req, res) => {
-  const { newUsername, newPassword, phone, email } = req.body;
+const getUsernameFromDB = async (userId) => {
   try {
-    if (!newUsername || !newPassword) {
-      return res.status(400).json({ error: 'Campos incompletos' });
-    }
-
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    const result = await pool.query(
-      'INSERT INTO users (newusername, newpassword, phone, email, rol_id) VALUES ($1, $2, $3, $4, $5) RETURNING id, newusername, email',
-      [newUsername, hashedPassword, phone, email, 1]
-    );
-
-    res.status(201).json(result.rows[0]);
+    const result = await pool.query('SELECT newusername FROM users WHERE id = $1', [userId]);
+    return result.rows[0]?.newusername || 'desconocido';
   } catch (err) {
-    console.error(err);
-    if (err.code === '23505') {
-      res.status(400).json({ error: 'El email ya está registrado' });
-    } else {
-      res.status(500).json({ error: 'Error al registrar usuario', user: req.body });
-    }
+    console.error("Error al obtener username desde la base de datos:", err);
+    return 'desconocido';
   }
 };
 
-//Login de Usuario
-const loginUser = async (req, res) => {
-  const { newUsername, newPassword } = req.body;
-  try {
-    const result = await pool.query('SELECT * FROM users WHERE newusername = $1', [newUsername]);
+//Registro de Usuario
+    const registerUser = async (req, res) => {
+    const { newUsername, newPassword, phone, email } = req.body;
+    try {
+      if (!newUsername || !newPassword) {
+        return res.status(400).json({ error: 'Campos incompletos' });
+      }
 
-    if (result.rows.length === 0) {
-      return res.status(400).json({ error: 'Usuario no encontrado' });
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      const result = await pool.query(
+        'INSERT INTO users (newusername, newpassword, phone, email, rol_id) VALUES ($1, $2, $3, $4, $5) RETURNING id, newusername, email',
+        [newUsername, hashedPassword, phone, email, 1]
+      );
+
+      // Registrar en bitácora la creación del usuario
+      await registrarBitacora({
+        users_id: result.rows[0].id,
+        username: newUsername,
+        tabla_afectada: 'users',
+        tipo_accion: 'Registrar',
+        descripcion: `Se registró el usuario ${newUsername} con email ${email}`,
+        req
+      });
+
+      res.status(201).json(result.rows[0]);
+    } catch (err) {
+      console.error(err);
+      if (err.code === '23505') {
+        res.status(400).json({ error: 'El email ya está registrado' });
+      } else {
+        res.status(500).json({ error: 'Error al registrar usuario', user: req.body });
+      }
     }
+};
 
-    const user = result.rows[0];
-    const isMatch = await bcrypt.compare(newPassword, user.newpassword);
 
-    if (!isMatch) {
-      return res.status(401).json({ error: 'Contraseña incorrecta' });
-    }
+  //Login de Usuario
+  const loginUser = async (req, res) => {
+    const { newUsername, newPassword } = req.body;
+    try {
+      const result = await pool.query('SELECT * FROM users WHERE newusername = $1', [newUsername]);
+
+      if (result.rows.length === 0) {
+        return res.status(400).json({ error: 'Usuario no encontrado' });
+      }
+
+      const user = result.rows[0];
+      const isMatch = await bcrypt.compare(newPassword, user.newpassword);
+
+      if (!isMatch) {
+        return res.status(401).json({ error: 'Contraseña incorrecta' });
+      }
+
+    // Registrar en bitácora el login
+    await registrarBitacora({
+      users_id: user.id,
+      username: user.newusername,
+      tabla_afectada: 'users',
+      tipo_accion: 'Login',
+      descripcion: `Inicio de sesión del usuario ${user.newusername}`,
+      fecha_ingreso: new Date(),
+      req
+    });
 
     res.json({
       message: 'Login exitoso',
       user: {
         id: user.id,
-        newUsername: user.newusername,
+        username: user.newusername,
         rol_id: user.rol_id,
         guestId: user.guest_id || null
       }
@@ -59,6 +92,29 @@ const loginUser = async (req, res) => {
   }
 };
 
+  //Registro de Usuario
+ const logoutUser = async (req, res) => {
+  const { userId, username } = req.query;
+
+  try {
+    await registrarBitacora({
+      users_id: userId,
+      username,
+      tabla_afectada: 'users',
+      tipo_accion: 'Logout',
+      descripcion: `Cierre de sesión del usuario ${username}`,
+      fecha_salida: new Date(),
+      req
+    });
+
+    res.status(200).json({ message: "Logout registrado correctamente" });
+  } catch (error) {
+    console.error("Error al registrar logout:", error);
+    res.status(500).json({ error: "Error al registrar logout" });
+  }
+};
+
+//Obtener todos los tipos de habitacion
 const getAllRooms = async (req, res) => {
   try {
     const result = await pool.query(`
@@ -94,10 +150,18 @@ const createReservation = async (req, res) => {
       people || null
     ]);
 
-    await pool.query(`
-      INSERT INTO bitacora (users_id, accion)
-      VALUES ($1, $2)
-    `, [userId, `Reservó habitación ID ${roomId}`]);
+    const username = await getUsernameFromDB(userId);
+
+    await registrarBitacora({
+      users_id: userId,
+      username,
+      tabla_afectada: 'reservations',
+      tipo_accion: 'Crear',
+      descripcion: `Reservó habitación ID ${roomId}`,
+      req
+    });
+
+
 
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -105,7 +169,7 @@ const createReservation = async (req, res) => {
     res.status(500).json({ error: "Error al guardar la reserva." });
   }
 };
-
+//Obtener reservas del usuario
 const getUserReservations = async (req, res) => {
   const userId = req.params.id;
 
@@ -134,19 +198,25 @@ const getUserReservations = async (req, res) => {
 };
 
 //Cancelar Reserva
-const cancelarReserva = async (req, res) => {
+  const cancelarReserva = async (req, res) => {
   const reservaId = req.params.id;
-  const { userId } = req.body;
+  const { userId} = req.body;
+  const username = await getUsernameFromDB(userId);
+
   try {
     const result = await pool.query(
       `UPDATE reservations SET state = 'cancelada' WHERE id = $1 RETURNING *`,
       [reservaId]
     );
 
-    await pool.query(`
-      INSERT INTO bitacora (users_id, accion)
-      VALUES ($1, $2)
-    `, [userId, `Canceló la reserva ID ${reservaId}`]);
+    await registrarBitacora({
+      users_id: userId,
+      username,
+      tabla_afectada: 'reservations',
+      tipo_accion: 'Cancelar',
+      descripcion: `Canceló la reserva ID ${reservaId}`,
+      req
+});
 
     res.json(result.rows[0]);
   } catch (err) {
@@ -176,7 +246,7 @@ const registerGuest = async (req, res) => {
     res.status(500).json({ error: 'Error al registrar huésped.' });
   }
 };
-
+//Obtener los huespedes registrados
 const getGuests = async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM guest');
@@ -186,7 +256,7 @@ const getGuests = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener huéspedes.' });
   }
 };
-
+// Obtener habitaciones paginadas y filtradas
 const getPaginatedRooms = async (req, res) => {
   const { page = 1, limit = 8, type, price, category, search } = req.query;
   const offset = (page - 1) * limit;
@@ -269,6 +339,8 @@ const getPaginatedRooms = async (req, res) => {
 module.exports = {
   registerUser,
   loginUser,
+  getAllRooms,
+  logoutUser,
   createReservation,
   getUserReservations,
   cancelarReserva,

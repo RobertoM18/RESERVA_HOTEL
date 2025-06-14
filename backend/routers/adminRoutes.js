@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require('express'); 
 const router = express.Router();
 const isAdmin = require('../middlewares/isAdmin');
 
@@ -13,22 +13,22 @@ const {
   getUsuariosPaginados 
 } = require('../controllers/adminControllers');
 
-// Crear habitación (solo admin)
+// Gestión de habitaciones
 router.post('/crear-habitacion', isAdmin, createRoom);
 
-// Obtener estadísticas (solo admin)
+// Estadísticas
 router.get('/estadisticas', isAdmin, getStats);
 
-// 📋 CRUD de usuarios (solo admin)
+// Gestión de usuarios
 router.get('/usuarios', isAdmin, getAllUsers);
 router.post('/usuarios', isAdmin, createUserFromAdmin); // ✅ nueva ruta
 router.put('/usuarios/:id', isAdmin, updateUser);
 router.delete('/usuarios/:id', isAdmin, deleteUser);
+router.get('/usuarios-paginados', isAdmin, getUsuariosPaginados);
 
 //Obtener bitacora (Solo admin)
 router.get('/bitacora-paginada', isAdmin, getBitacoraPaginated);
-//Obtener usuarios paginados
-router.get('/usuarios-paginados', isAdmin, getUsuariosPaginados);
+
 
 
 module.exports = router;

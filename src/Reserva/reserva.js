@@ -70,7 +70,9 @@ document.addEventListener("DOMContentLoaded", async function () {
               headers: {
                 "Content-Type": "application/json"
               },
-              body: JSON.stringify({ userId: user.id }) // ✅ Se envía el userId
+              body: JSON.stringify({ 
+                userId: user.id,
+                username: user.newusername }) 
             });
 
             if (!cancelRes.ok) {

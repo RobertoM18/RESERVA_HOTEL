@@ -1,5 +1,6 @@
 const pool = require('../db/connection');
 const bcrypt = require('bcrypt');
+const registrarBitacora = require('../utils/bitacoraLogger');
 
 // Crear una nueva habitación
 const createRoom = async (req, res) => {
@@ -17,10 +18,15 @@ const createRoom = async (req, res) => {
       RETURNING *
     `, [name, price, ability, imagen, category, type_id]);
 
-    await pool.query(`
-      INSERT INTO bitacora (users_id, accion)
-      VALUES ($1, $2)
-    `, [adminId, `Creó habitación: ${name}`]);
+      await registrarBitacora({
+        users_id: adminId,
+        username: req.query.username || 'admin', // Asegúrate de enviar el nombre en la query
+        tabla_afectada: 'rooms',
+        tipo_accion: 'Crear',
+        descripcion: `Creó habitación: ${name}`,
+        req
+      });
+
 
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -87,10 +93,17 @@ const createUserFromAdmin = async (req, res) => {
       RETURNING id, newusername, email, phone, rol_id
     `, [newusername, email, hashedPassword, phone || null, rol_id]);
 
-    await pool.query(`
-      INSERT INTO bitacora (users_id, accion)
-      VALUES ($1, $2)
-    `, [adminId, `Creó usuario: ${newusername}`]);
+   
+
+      await registrarBitacora({
+        users_id: adminId,
+        username: req.query.username || 'desconocido',
+        tabla_afectada: 'users',
+        tipo_accion: 'Crear',
+        descripcion: `Creó usuario: ${newusername}`,
+        req
+      });
+
 
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -115,10 +128,15 @@ const updateUser = async (req, res) => {
       [newusername, email, phone, rol_id, id]
     );
 
-    await pool.query(`
-      INSERT INTO bitacora (users_id, accion)
-      VALUES ($1, $2)
-    `, [adminId, `Actualizó usuario ID: ${id}`]);
+    await registrarBitacora({
+      users_id: adminId,
+      username: req.query.username || 'desconocido',
+      tabla_afectada: 'users',
+      tipo_accion: 'Actualizar',
+      descripcion: `Actualizó usuario ID ${id}, nuevo username: ${newusername}`,
+      req
+    });
+
 
     res.status(200).json(result.rows[0]);
   } catch (err) {
@@ -135,10 +153,15 @@ const deleteUser = async (req, res) => {
   try {
     await pool.query('DELETE FROM users WHERE id = $1', [id]);
 
-    await pool.query(`
-      INSERT INTO bitacora (users_id, accion)
-      VALUES ($1, $2)
-    `, [adminId, `Eliminó usuario ID: ${id}`]);
+    await registrarBitacora({
+      users_id: adminId,
+      username: req.query.username || 'desconocido',
+      tabla_afectada: 'users',
+      tipo_accion: 'Eliminar',
+      descripcion: `Eliminó usuario con ID ${id}`,
+      req
+    });
+
 
     res.status(200).json({ message: "Usuario eliminado correctamente" });
   } catch (err) {
@@ -159,7 +182,7 @@ const deleteUser = async (req, res) => {
       `SELECT id, newusername, email, phone, rol_id 
        FROM users 
        WHERE LOWER(newusername) LIKE $1 OR LOWER(email) LIKE $1
-       ORDER BY id ASC 
+       ORDER BY id ASC
        LIMIT $2 OFFSET $3`,
       [`%${search}%`, limit, offset]
     );
@@ -187,64 +210,59 @@ const deleteUser = async (req, res) => {
 
 
 // Obtener bitácora
-const getBitacoraPaginated = async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
-  const offset = (page - 1) * limit;
-  const search = req.query.search?.trim() || "";
+      const getBitacoraPaginated = async (req, res) => {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const offset = (page - 1) * limit;
+      const search = req.query.search?.trim() || "";
 
-  try {
-    let registrosResult, totalResult;
-    let totalPages = 1;
+      try {
+        let registrosResult, totalResult;
+        let totalPages = 1;
 
-    if (search !== "") {
-      const searchTerm = `%${search}%`;
+        const baseCountQuery = `SELECT COUNT(*) FROM bitacora`;
+        const baseDataQuery = `
+          SELECT id, username, tipo_accion, descripcion, fecha_ingreso, fecha_salida, ip_address, navegador, pc_name, tabla_afectada
+          FROM bitacora
+        `;
 
-      const totalQuery = `
-        SELECT COUNT(*) 
-        FROM bitacora b
-        JOIN users u ON u.id = b.users_id
-        WHERE u.newusername ILIKE $1 OR b.accion ILIKE $1
-      `;
+        if (search !== "") {
+          const searchTerm = `%${search.toLowerCase()}%`;
 
-      const dataQuery = `
-        SELECT b.id, u.newusername AS username, b.accion, b.fecha
-        FROM bitacora b
-        JOIN users u ON u.id = b.users_id
-        WHERE u.newusername ILIKE $1 OR b.accion ILIKE $1
-        ORDER BY b.fecha ASC
-        LIMIT $2 OFFSET $3
-      `;
+          const whereClause = `
+            WHERE LOWER(username) LIKE $1
+              OR LOWER(tipo_accion) LIKE $1
+              OR LOWER(descripcion) LIKE $1
+              OR LOWER(tabla_afectada) LIKE $1
+          `;
 
-      totalResult = await pool.query(totalQuery, [searchTerm]);
-      registrosResult = await pool.query(dataQuery, [searchTerm, limit, offset]);
-    } else {
-      const totalQuery = `SELECT COUNT(*) FROM bitacora`;
-      const dataQuery = `
-        SELECT b.id, u.newusername AS username, b.accion, b.fecha
-        FROM bitacora b
-        JOIN users u ON u.id = b.users_id
-        ORDER BY b.fecha ASC
-        LIMIT $1 OFFSET $2
-      `;
+          totalResult = await pool.query(`${baseCountQuery} ${whereClause}`, [searchTerm]);
+          registrosResult = await pool.query(
+            `${baseDataQuery} ${whereClause} ORDER BY fecha_ingreso ASC LIMIT $2 OFFSET $3`,
+            [searchTerm, limit, offset]
+          );
+        } else {
+          totalResult = await pool.query(baseCountQuery);
+          registrosResult = await pool.query(
+            `${baseDataQuery} ORDER BY fecha_ingreso ASC LIMIT $1 OFFSET $2`,
+            [limit, offset]
+          );
+        }
 
-      totalResult = await pool.query(totalQuery);
-      registrosResult = await pool.query(dataQuery, [limit, offset]);
-    }
+        const totalRows = parseInt(totalResult.rows[0].count);
+        totalPages = Math.ceil(totalRows / limit);
 
-    const totalRows = parseInt(totalResult.rows[0].count);
-    totalPages = Math.ceil(totalRows / limit);
+        res.json({
+          registros: registrosResult.rows,
+          totalPages,
+          currentPage: page,
+        });
+      } catch (error) {
+        console.error("Error al obtener bitácora paginada:", error);
+        res.status(500).json({ error: 'Error al obtener bitácora paginada' });
+      }
+    };
 
-    res.json({
-      registros: registrosResult.rows,
-      totalPages,
-      currentPage: page,
-    });
-  } catch (error) {
-    console.error("Error al obtener bitácora paginada:", error);
-    res.status(500).json({ error: 'Error al obtener bitácora paginada' });
-  }
-};
 
 
 module.exports = {
