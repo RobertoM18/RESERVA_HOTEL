@@ -81,7 +81,7 @@ if (logoutBtn) {
     pagination.appendChild(createBtn("Siguiente ›", currentPage + 1, currentPage === totalPages));
     pagination.appendChild(createBtn("Último »", totalPages, currentPage === totalPages));
   }
-
+//Obtener habitaciones y mostrarlas
   function displayRooms(rooms) {
     container.innerHTML = "";
 
@@ -109,7 +109,7 @@ if (logoutBtn) {
     });
 
     renderPagination();
-
+//AGREGAR FECHA DE RESERVA
     document.querySelectorAll(".reserve-btn").forEach(button => {
       button.addEventListener("click", () => {
         const roomId = button.dataset.roomId;
@@ -137,7 +137,7 @@ if (logoutBtn) {
       });
     });
   }
-
+//FILTROS PARA BUSCAR HABITACIONES
   async function fetchRoomsFromBackend(page = 1) {
     const typeFilter = selectType.value;
     const priceFilter = selectPrice.value;
@@ -149,7 +149,13 @@ if (logoutBtn) {
     params.append("limit", roomsPerPage);
 
     if (typeFilter) params.append("type", typeFilter);
-    if (priceFilter) params.append("price", priceFilter);
+    
+    if (priceFilter.includes('-')) {
+        const [min, max] = priceFilter.split('-');
+        if (!isNaN(min)) params.append("minPrice", min);
+        if (!isNaN(max)) params.append("maxPrice", max);
+      }
+
     if (categoriaFilter) params.append("category", categoriaFilter);
     if (searchText) params.append("search", searchText);
 
@@ -189,6 +195,7 @@ if (logoutBtn) {
   document.getElementById("guest-form").addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    //RESERVACION
     const user = JSON.parse(localStorage.getItem("user"));
     const guestData = {
       first_name: document.getElementById("first-name").value,

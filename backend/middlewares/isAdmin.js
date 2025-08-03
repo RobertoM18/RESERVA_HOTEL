@@ -3,7 +3,7 @@ const pool = require('../db/connection');
 
 const isAdmin = async (req, res, next) => {
   try {
-    const userId = req.query.userId; // 👈 asegúrate de que es query, no body
+    const userId = req.query.userId; 
 
     if (!userId) {
       return res.status(401).json({ error: "Falta userId" });

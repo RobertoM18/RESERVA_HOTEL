@@ -1,4 +1,4 @@
-// admin.js COMPLETO
+// admin.js 
 
 document.addEventListener("DOMContentLoaded", () => {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-
+//OBTENER USUARIOS PAGINADOS
   async function cargarUsuariosPaginados() {
     try {
       const res = await fetch(`http://localhost:3000/api/admin/usuarios-paginados?page=${usuariosPaginaActual}&limit=10&search=${encodeURIComponent(filtroBusqueda)}&userId=${userId}&username=${user.username}`);

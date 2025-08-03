@@ -21,7 +21,7 @@ router.get('/estadisticas', isAdmin, getStats);
 
 // Gestión de usuarios
 router.get('/usuarios', isAdmin, getAllUsers);
-router.post('/usuarios', isAdmin, createUserFromAdmin); // ✅ nueva ruta
+router.post('/usuarios', isAdmin, createUserFromAdmin); 
 router.put('/usuarios/:id', isAdmin, updateUser);
 router.delete('/usuarios/:id', isAdmin, deleteUser);
 router.get('/usuarios-paginados', isAdmin, getUsuariosPaginados);

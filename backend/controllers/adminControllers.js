@@ -1,157 +1,102 @@
+// backend/controllers/adminControllers.js
+const { crearHabitacion } = require('../services/roomService');
+const { crearUsuario, actualizarUsuario, eliminarUsuario } = require('../services/userService');
 const pool = require('../db/connection');
-const bcrypt = require('bcrypt');
 const registrarBitacora = require('../utils/bitacoraLogger');
+const { obtenerUsuariosPaginados, obtenerBitacoraPaginada } = require('../services/paginationService');
+const { obtenerEstadisticas, obtenerTodosLosUsuarios } = require('../services/statsService');
 
-// Crear una nueva habitación
+
+
 const createRoom = async (req, res) => {
   const adminId = req.query.userId;
-  const { name, price, ability, imagen, category, type_id } = req.body;
+  const datos = req.body;
 
-  if (!name || !price || !ability || !imagen || !category || !type_id) {
+  if (Object.values(datos).some(val => !val)) {
     return res.status(400).json({ error: 'Faltan datos obligatorios.' });
   }
 
   try {
-    const result = await pool.query(`
-      INSERT INTO rooms (name, price, ability, imagen, category, type_id)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *
-    `, [name, price, ability, imagen, category, type_id]);
-
-      await registrarBitacora({
-        users_id: adminId,
-        username: req.query.username || 'admin', // Asegúrate de enviar el nombre en la query
-        tabla_afectada: 'rooms',
-        tipo_accion: 'Crear',
-        descripcion: `Creó habitación: ${name}`,
-        req
-      });
-
-
-    res.status(201).json(result.rows[0]);
-  } catch (error) {
-    console.error('Error al crear habitación:', error);
-    res.status(500).json({ error: 'Error al crear habitación.' });
-  }
-};
-
-// Obtener estadísticas básicas
-const getStats = async (req, res) => {
-  try {
-    const totalReservas = await pool.query(`SELECT COUNT(*) FROM reservations`);
-    const reservasActivas = await pool.query(`SELECT COUNT(*) FROM reservations WHERE state = 'activa'`);
-    const reservasCanceladas = await pool.query(`SELECT COUNT(*) FROM reservations WHERE state = 'cancelada'`);
-    const totalUsuarios = await pool.query(`SELECT COUNT(*) FROM users`);
-    const habitaciones = await pool.query(`SELECT COUNT(*) FROM rooms`);
-
-    res.json({
-      totalReservas: totalReservas.rows[0].count,
-      reservasActivas: reservasActivas.rows[0].count,
-      reservasCanceladas: reservasCanceladas.rows[0].count,
-      totalUsuarios: totalUsuarios.rows[0].count,
-      habitacionesRegistradas: habitaciones.rows[0].count
+    const room = await crearHabitacion(datos);
+    await registrarBitacora({
+      users_id: adminId,
+      username: req.query.username || 'admin',
+      tabla_afectada: 'rooms',
+      tipo_accion: 'Crear',
+      descripcion: `Creó habitación: ${datos.name}`,
+      req
     });
-  } catch (error) {
-    console.error('Error al obtener estadísticas:', error);
-    res.status(500).json({ error: 'Error al obtener estadísticas.' });
-  }
-};
-
-// Obtener todos los usuarios
-const getAllUsers = async (req, res) => {
-  try {
-    const result = await pool.query(
-      'SELECT id, newusername, email, phone, rol_id FROM users ORDER BY id'
-    );
-    res.status(200).json(result.rows);
+    res.status(201).json(room);
   } catch (err) {
-    console.error("Error al obtener usuarios:", err.message);
-    res.status(500).json({ error: "Error al obtener usuarios" });
+    console.error("Error al crear habitación:", err);
+    res.status(500).json({ error: "Error al crear habitación" });
   }
 };
 
-// Crear usuario desde el panel admin
 const createUserFromAdmin = async (req, res) => {
   const adminId = req.query.userId;
-  const { newusername, email, newpassword, phone, rol_id } = req.body;
+  const datos = req.body;
 
-  if (!newusername || !email || !newpassword || !rol_id) {
+  if (!datos.newusername || !datos.email || !datos.newpassword || !datos.rol_id) {
     return res.status(400).json({ error: 'Faltan datos obligatorios' });
   }
 
   try {
-    const existe = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const existe = await pool.query('SELECT * FROM users WHERE email = $1', [datos.email]);
     if (existe.rows.length > 0) {
       return res.status(400).json({ error: 'El correo ya está registrado' });
     }
 
-    const hashedPassword = await bcrypt.hash(newpassword, 10);
-
-    const result = await pool.query(`
-      INSERT INTO users (newusername, email, newpassword, phone, rol_id)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, newusername, email, phone, rol_id
-    `, [newusername, email, hashedPassword, phone || null, rol_id]);
-
-   
-
-      await registrarBitacora({
-        users_id: adminId,
-        username: req.query.username || 'desconocido',
-        tabla_afectada: 'users',
-        tipo_accion: 'Crear',
-        descripcion: `Creó usuario: ${newusername}`,
-        req
-      });
-
-
-    res.status(201).json(result.rows[0]);
+    const nuevoUsuario = await crearUsuario(datos);
+    await registrarBitacora({
+      users_id: adminId,
+      username: req.query.username || 'desconocido',
+      tabla_afectada: 'users',
+      tipo_accion: 'Crear',
+      descripcion: `Creó usuario: ${datos.newusername}`,
+      req
+    });
+    res.status(201).json(nuevoUsuario);
   } catch (err) {
-    console.error("❌ Error al crear usuario desde admin:", err);
+    console.error("Error al crear usuario desde admin:", err);
     res.status(500).json({ error: "Error interno al crear usuario" });
   }
 };
 
-// Actualizar usuario
 const updateUser = async (req, res) => {
   const adminId = req.query.userId;
   const { id } = req.params;
-  const { newusername, email, phone, rol_id } = req.body;
+  const datos = req.body;
 
-  if (!newusername || !email || !rol_id) {
+  if (!datos.newusername || !datos.email || !datos.rol_id) {
     return res.status(400).json({ error: "Faltan datos obligatorios" });
   }
 
   try {
-    const result = await pool.query(
-      `UPDATE users SET newusername = $1, email = $2, phone = $3, rol_id = $4 WHERE id = $5 RETURNING *`,
-      [newusername, email, phone, rol_id, id]
-    );
+    const usuarioActualizado = await actualizarUsuario({ id, ...datos });
 
     await registrarBitacora({
       users_id: adminId,
       username: req.query.username || 'desconocido',
       tabla_afectada: 'users',
       tipo_accion: 'Actualizar',
-      descripcion: `Actualizó usuario ID ${id}, nuevo username: ${newusername}`,
+      descripcion: `Actualizó usuario ID ${id}, nuevo username: ${datos.newusername}`,
       req
     });
 
-
-    res.status(200).json(result.rows[0]);
+    res.status(200).json(usuarioActualizado);
   } catch (err) {
     console.error("Error al actualizar usuario:", err.message);
     res.status(500).json({ error: "Error al actualizar usuario" });
   }
 };
 
-// Eliminar usuario
 const deleteUser = async (req, res) => {
   const adminId = req.query.userId;
   const { id } = req.params;
 
   try {
-    await pool.query('DELETE FROM users WHERE id = $1', [id]);
+    await eliminarUsuario(id);
 
     await registrarBitacora({
       users_id: adminId,
@@ -162,7 +107,6 @@ const deleteUser = async (req, res) => {
       req
     });
 
-
     res.status(200).json({ message: "Usuario eliminado correctamente" });
   } catch (err) {
     console.error("Error al eliminar usuario:", err.message);
@@ -170,108 +114,62 @@ const deleteUser = async (req, res) => {
   }
 };
 
-// Obtener usuarios paginados
-  const getUsuariosPaginados = async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
-  const offset = (page - 1) * limit;
-  const search = req.query.search?.toLowerCase() || "";
-
+const getUsuariosPaginados = async (req, res) => {
   try {
-    const result = await pool.query(
-      `SELECT id, newusername, email, phone, rol_id 
-       FROM users 
-       WHERE LOWER(newusername) LIKE $1 OR LOWER(email) LIKE $1
-       ORDER BY id ASC
-       LIMIT $2 OFFSET $3`,
-      [`%${search}%`, limit, offset]
-    );
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
 
-    const totalResult = await pool.query(
-      `SELECT COUNT(*) FROM users 
-       WHERE LOWER(newusername) LIKE $1 OR LOWER(email) LIKE $1`,
-      [`%${search}%`]
-    );
-
-    const total = parseInt(totalResult.rows[0].count);
-    const totalPages = Math.ceil(total / limit);
-
-    res.json({
-      usuarios: result.rows,
-      totalPages,
-      currentPage: page
-    });
+    const resultado = await obtenerUsuariosPaginados({ page, limit, search });
+    res.json(resultado);
   } catch (error) {
-    console.error("Error al obtener usuarios paginados con búsqueda:", error.message);
+    console.error("Error al obtener usuarios paginados:", error.message);
     res.status(500).json({ error: 'Error al obtener usuarios paginados' });
   }
 };
 
+const getBitacoraPaginated = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
 
+    const resultado = await obtenerBitacoraPaginada({ page, limit, search });
+    res.json(resultado);
+  } catch (error) {
+    console.error("Error al obtener bitácora paginada:", error.message);
+    res.status(500).json({ error: 'Error al obtener bitácora paginada' });
+  }
+};
 
-// Obtener bitácora
-      const getBitacoraPaginated = async (req, res) => {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 10;
-      const offset = (page - 1) * limit;
-      const search = req.query.search?.trim() || "";
+const getStats = async (req, res) => {
+  try {
+    const stats = await obtenerEstadisticas();
+    res.status(200).json(stats);
+  } catch (err) {
+    console.error("Error al obtener estadísticas:", err.message);
+    res.status(500).json({ error: "Error al obtener estadísticas del sistema" });
+  }
+};
 
-      try {
-        let registrosResult, totalResult;
-        let totalPages = 1;
-
-        const baseCountQuery = `SELECT COUNT(*) FROM bitacora`;
-        const baseDataQuery = `
-          SELECT id, username, tipo_accion, descripcion, fecha_ingreso, fecha_salida, ip_address, navegador, pc_name, tabla_afectada
-          FROM bitacora
-        `;
-
-        if (search !== "") {
-          const searchTerm = `%${search.toLowerCase()}%`;
-
-          const whereClause = `
-            WHERE LOWER(username) LIKE $1
-              OR LOWER(tipo_accion) LIKE $1
-              OR LOWER(descripcion) LIKE $1
-              OR LOWER(tabla_afectada) LIKE $1
-          `;
-
-          totalResult = await pool.query(`${baseCountQuery} ${whereClause}`, [searchTerm]);
-          registrosResult = await pool.query(
-            `${baseDataQuery} ${whereClause} ORDER BY fecha_ingreso ASC LIMIT $2 OFFSET $3`,
-            [searchTerm, limit, offset]
-          );
-        } else {
-          totalResult = await pool.query(baseCountQuery);
-          registrosResult = await pool.query(
-            `${baseDataQuery} ORDER BY fecha_ingreso ASC LIMIT $1 OFFSET $2`,
-            [limit, offset]
-          );
-        }
-
-        const totalRows = parseInt(totalResult.rows[0].count);
-        totalPages = Math.ceil(totalRows / limit);
-
-        res.json({
-          registros: registrosResult.rows,
-          totalPages,
-          currentPage: page,
-        });
-      } catch (error) {
-        console.error("Error al obtener bitácora paginada:", error);
-        res.status(500).json({ error: 'Error al obtener bitácora paginada' });
-      }
-    };
-
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await obtenerTodosLosUsuarios();
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error al obtener todos los usuarios:", error.message);
+    res.status(500).json({ error: "Error al obtener usuarios" });
+  }
+};
 
 
 module.exports = {
   createRoom,
-  getStats,
-  getAllUsers,
   createUserFromAdmin,
   updateUser,
   deleteUser,
-  getBitacoraPaginated, 
-  getUsuariosPaginados
+  getUsuariosPaginados,
+  getBitacoraPaginated,
+  getStats,
+  getAllUsers
 };
