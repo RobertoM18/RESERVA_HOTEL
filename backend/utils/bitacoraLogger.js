@@ -15,7 +15,7 @@ const registrarBitacora = async ({
       console.warn("Faltan datos obligatorios para registrar en bitácora.");
       return;
     }
-z
+
     const safeUsername = username || 'desconocido';
     const navegador = req?.headers?.['user-agent'] || 'Desconocido';
     const ip = req?.ip || req?.connection?.remoteAddress || 'Desconocida';

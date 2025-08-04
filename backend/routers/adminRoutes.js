@@ -1,6 +1,14 @@
 const express = require('express'); 
 const router = express.Router();
+
 const isAdmin = require('../middlewares/isAdmin');
+const { checkPermission } = require('../middlewares/checkPermission');
+
+const {
+  getPermisosDisponibles,
+  getPermisosDeUsuario,
+  asignarPermisosAUsuario
+} = require('../controllers/permisosController');
 
 const { 
   createRoom, 
@@ -14,21 +22,85 @@ const {
 } = require('../controllers/adminControllers');
 
 // Gestión de habitaciones
-router.post('/crear-habitacion', isAdmin, createRoom);
+router.post(
+  '/crear-habitacion', 
+  isAdmin, 
+  checkPermission('CREATE_ROOM'), 
+  createRoom
+);
 
 // Estadísticas
-router.get('/estadisticas', isAdmin, getStats);
+router.get(
+  '/estadisticas', 
+  isAdmin, 
+  checkPermission('VIEW_STATS'), 
+  getStats
+);
 
 // Gestión de usuarios
-router.get('/usuarios', isAdmin, getAllUsers);
-router.post('/usuarios', isAdmin, createUserFromAdmin); 
-router.put('/usuarios/:id', isAdmin, updateUser);
-router.delete('/usuarios/:id', isAdmin, deleteUser);
-router.get('/usuarios-paginados', isAdmin, getUsuariosPaginados);
+router.get(
+  '/usuarios', 
+  isAdmin, 
+  checkPermission('READ_USER'), 
+  getAllUsers
+);
 
-//Obtener bitacora (Solo admin)
-router.get('/bitacora-paginada', isAdmin, getBitacoraPaginated);
+router.post(
+  '/usuarios', 
+  isAdmin, 
+  checkPermission('CREATE_USER'), 
+  createUserFromAdmin
+);
 
+router.put(
+  '/usuarios/:id', 
+  isAdmin, 
+  checkPermission('UPDATE_USER'), 
+  updateUser
+);
 
+router.delete(
+  '/usuarios/:id', 
+  isAdmin, 
+  checkPermission('DELETE_USER'), 
+  deleteUser
+);
+
+router.get(
+  '/usuarios-paginados', 
+  isAdmin, 
+  checkPermission('READ_USER'), 
+  getUsuariosPaginados
+);
+
+// Bitácora
+router.get(
+  '/bitacora-paginada', 
+  isAdmin, 
+  checkPermission('VIEW_BITACORA'), 
+  getBitacoraPaginated
+);
+
+// Gestión de permisos
+router.get(
+  '/permisos-disponibles',
+  isAdmin,
+  checkPermission('MANAGE_PERMISSIONS'),
+  getPermisosDisponibles
+);
+
+router.get(
+  '/permisos-usuario/:userId',
+  isAdmin,
+  checkPermission('MANAGE_PERMISSIONS'),
+  getPermisosDeUsuario
+);
+
+router.post(
+  '/permisos',
+  isAdmin,
+  checkPermission('MANAGE_PERMISSIONS'),
+  asignarPermisosAUsuario
+);
 
 module.exports = router;

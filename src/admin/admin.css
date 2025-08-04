@@ -555,3 +555,80 @@ input:focus, select:focus {
     align-items: stretch;
   }
 }
+
+/* ======= SECCIÓN DE GESTIÓN DE PERMISOS ======= */
+#seccion-permisos {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background-color: #1e1e1e;
+  color: #f0f0f0;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+#seccion-permisos h2 {
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+}
+
+#select-user {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  border-radius: 5px;
+  background-color: #2b2b2b;
+  color: #fff;
+  border: 1px solid #555;
+}
+
+#permisos-checkboxes {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.8rem;
+}
+
+#permisos-checkboxes label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #2a2a2a;
+  padding: 0.5rem 0.75rem;
+  border-radius: 5px;
+  border: 1px solid #444;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+#guardar-permisos {
+  background-color: #4caf50;
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+#guardar-permisos:hover {
+  background-color: #45a049;
+}
+
+#btn-cargar-permisos {
+  margin-top: 1.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #007acc;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#btn-cargar-permisos:hover {
+  background-color: #005fa3;
+}

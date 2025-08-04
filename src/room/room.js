@@ -235,7 +235,7 @@ if (logoutBtn) {
         alert("Reserva realizada exitosamente.");
         window.location.href = "../reserva/reserva.html";
       } else {
-        const errorData = await reservaRes.json();
+        const errorData = await reservaRes.json();  
         throw new Error(errorData.error || "Error al crear reserva.");
       }
 

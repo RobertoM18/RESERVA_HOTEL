@@ -9,7 +9,7 @@ const registerGuest = async (req, res) => {
   if (!first_name || !last_name || !dni || !email) {
     return res.status(400).json({ error: "Faltan campos obligatorios" });
   }
-z
+
   try {
     const result = await pool.query(`
       INSERT INTO guest (first_name, last_name, dni, email, phone, nationality)

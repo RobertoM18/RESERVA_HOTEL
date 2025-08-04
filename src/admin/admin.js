@@ -8,13 +8,15 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
+    const userId = user.id;
+    const username = user.newusername;
+
   document.getElementById("admin-panel").style.display = "block";
-  const userId = user.id;
 
   //Logout
       document.getElementById("logout").addEventListener("click", async () => {
       try {
-        await fetch(`http://localhost:3000/api/users/logout?userId=${user.id}&username=${user.newUsername}`, {
+        await fetch(`http://localhost:3000/api/users/logout?userId=${userId}&username=${username}`, {
           method: "POST"
         });
       } catch (err) {
@@ -40,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     try {
-        const res = await fetch(`http://localhost:3000/api/admin/crear-habitacion?userId=${userId}&username=${user.username}`, {
+        const res = await fetch(`http://localhost:3000/api/admin/crear-habitacion?userId=${userId}&username=${username}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(habitacion)
@@ -75,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function cargarEstadisticas() {
     try {
-      const res = await fetch(`http://localhost:3000/api/admin/estadisticas?userId=${userId}&username=${user.username}`);
+      const res = await fetch(`http://localhost:3000/api/admin/estadisticas?userId=${userId}&username=${username}`);
       const stats = await res.json();
       if (!res.ok) throw new Error(stats.error || "Acceso denegado");
       divEstadisticas.innerHTML = `
@@ -122,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
 //OBTENER USUARIOS PAGINADOS
   async function cargarUsuariosPaginados() {
     try {
-      const res = await fetch(`http://localhost:3000/api/admin/usuarios-paginados?page=${usuariosPaginaActual}&limit=10&search=${encodeURIComponent(filtroBusqueda)}&userId=${userId}&username=${user.username}`);
+      const res = await fetch(`http://localhost:3000/api/admin/usuarios-paginados?page=${usuariosPaginaActual}&limit=10&search=${encodeURIComponent(filtroBusqueda)}&userId=${userId}&username=${username}`);
       const { usuarios, totalPages, currentPage } = await res.json();
       usuariosPaginaActual = currentPage;
       usuariosTotalPaginas = totalPages;
@@ -221,7 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const rol_id = document.querySelector(`.edit-rol[data-id="${id}"]`).value;
 
         try {
-          const res = await fetch(`http://localhost:3000/api/admin/usuarios/${id}?userId=${userId}&username=${user.username}`, {
+          const res = await fetch(`http://localhost:3000/api/admin/usuarios/${id}?userId=${userId}&username=${username}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ newusername: username, email, phone, rol_id: parseInt(rol_id) })
@@ -249,7 +251,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!confirm("¿Estás seguro de eliminar este usuario?")) return;
 
         try {
-          const res = await fetch(`http://localhost:3000/api/admin/usuarios/${id}?userId=${userId}&username=${user.username}`, {
+          const res = await fetch(`http://localhost:3000/api/admin/usuarios/${id}?userId=${userId}&username=${username}`, {
             method: "DELETE"
           });
           if (!res.ok) throw new Error("Error al eliminar");
@@ -285,7 +287,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const res = await fetch(`http://localhost:3000/api/admin/usuarios?userId=${userId}&username=${user.username}`, {
+      const res = await fetch(`http://localhost:3000/api/admin/usuarios?userId=${userId}&username=${username}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ newusername: newUsername, email, newpassword: password, phone, rol_id })
@@ -305,109 +307,194 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ================== BITÁCORA DEL SISTEMA ==================
-  let paginaActual = 1;
-  let totalPaginas = 1;
-  let filtroBitacora = "";
+let paginaActual = 1;
+let totalPaginas = 1;
+let filtroBitacora = "";
 
-  const btnBitacora = document.getElementById("btn-cargar-bitacora");
-  const seccionBitacora = document.getElementById("seccion-bitacora");
-  const paginationContainer = document.getElementById("bitacora-pagination-numbers");
+const btnBitacora = document.getElementById("btn-cargar-bitacora");
+const seccionBitacora = document.getElementById("seccion-bitacora");
+const paginationContainer = document.getElementById("bitacora-pagination-numbers");
 
-  if (btnBitacora && seccionBitacora) {
-    btnBitacora.addEventListener("click", async () => {
-      if (seccionBitacora.style.display === "none") {
-        seccionBitacora.style.display = "block";
-        btnBitacora.innerText = "Ocultar bitácora";
-        await cargarBitacoraPaginada();
-      } else {
-        seccionBitacora.style.display = "none";
-        btnBitacora.innerText = "Ver bitácora";
-      }
-    });
-  }
-
-    async function cargarBitacoraPaginada() {
-      try {
-        const res = await fetch(`http://localhost:3000/api/admin/bitacora-paginada?page=${paginaActual}&limit=10&search=${encodeURIComponent(filtroBitacora)}&userId=${userId}`);
-        const data = await res.json();
-
-        const tbody = document.querySelector("#tabla-bitacora tbody");
-        tbody.innerHTML = "";
-
-        tbody.innerHTML = "";
-          data.registros.forEach((r, index) => {
-            const numero = (paginaActual - 1) * 10 + index + 1;
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${numero}</td>
-              <td>${r.username}</td>
-              <td>${r.fecha_ingreso ? new Date(r.fecha_ingreso).toLocaleString() : '-'}</td>
-              <td>${r.fecha_salida ? new Date(r.fecha_salida).toLocaleString() : '-'}</td>
-              <td>${r.navegador}</td>
-              <td>${r.ip_address}</td>
-              <td>${r.pc_name}</td>
-              <td>${r.tabla_afectada}</td>
-              <td>${r.tipo_accion}</td>
-              <td>${r.descripcion}</td>
-            `;
-            tbody.appendChild(tr);
-          });
-
-        totalPaginas = data.totalPages;
-        paginaActual = data.currentPage;
-
-        renderPaginationNumbers();
-      } catch (err) {
-        alert("Error al cargar bitácora: " + err.message);
-      }
+if (btnBitacora && seccionBitacora) {
+  btnBitacora.addEventListener("click", async () => {
+    if (seccionBitacora.style.display === "none") {
+      seccionBitacora.style.display = "block";
+      btnBitacora.innerText = "Ocultar bitácora";
+      await cargarBitacoraPaginada();
+    } else {
+      seccionBitacora.style.display = "none";
+      btnBitacora.innerText = "Ver bitácora";
     }
+  });
+}
 
-  function renderPaginationNumbers() {
-    paginationContainer.innerHTML = "";
+async function cargarBitacoraPaginada() {
+  try {
+    const res = await fetch(`http://localhost:3000/api/admin/bitacora-paginada?page=${paginaActual}&limit=10&search=${encodeURIComponent(filtroBitacora)}&userId=${userId}`);
+    const data = await res.json();
 
-    for (let i = 1; i <= totalPaginas; i++) {
-      const btn = document.createElement("button");
-      btn.textContent = i;
-      btn.className = (i === paginaActual) ? "active" : "";
-      btn.addEventListener("click", () => {
-        paginaActual = i;
-        cargarBitacoraPaginada();
+    const tbody = document.querySelector("#tabla-bitacora tbody");
+    tbody.innerHTML = "";
+
+    if (Array.isArray(data.data)) {
+      data.data.forEach((r, index) => {
+        const numero = (paginaActual - 1) * 10 + index + 1;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${numero}</td>
+          <td>${r.username}</td>
+          <td>${r.fecha_ingreso ? new Date(r.fecha_ingreso).toLocaleString() : '-'}</td>
+          <td>${r.fecha_salida ? new Date(r.fecha_salida).toLocaleString() : '-'}</td>
+          <td>${r.navegador}</td>
+          <td>${r.ip_address}</td>
+          <td>${r.pc_name}</td>
+          <td>${r.tabla_afectada}</td>
+          <td>${r.tipo_accion}</td>
+          <td>${r.descripcion}</td>
+        `;
+        tbody.appendChild(tr);
       });
-      paginationContainer.appendChild(btn);
+
+      totalPaginas = Math.ceil(data.total / 10);
+      renderPaginationNumbers();
+    } else {
+      alert("Error al cargar bitácora: datos no válidos");
     }
+
+  } catch (err) {
+    alert("Error al cargar bitácora: " + err.message);
   }
-  document.getElementById("btn-buscar-bitacora").addEventListener("click", async () => {
+}
+
+function renderPaginationNumbers() {
+  paginationContainer.innerHTML = "";
+
+  for (let i = 1; i <= totalPaginas; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
+    btn.className = (i === paginaActual) ? "active" : "";
+    btn.addEventListener("click", () => {
+      paginaActual = i;
+      cargarBitacoraPaginada();
+    });
+    paginationContainer.appendChild(btn);
+  }
+}
+
+// Eventos para búsqueda y navegación
+document.getElementById("btn-buscar-bitacora").addEventListener("click", async () => {
   const input = document.getElementById("input-buscar-bitacora").value.trim();
   filtroBitacora = input;
   paginaActual = 1;
   await cargarBitacoraPaginada();
-  });
+});
 
-  document.getElementById("bitacora-first-page").addEventListener("click", () => {
-    if (paginaActual !== 1) {
-      paginaActual = 1;
-      cargarBitacoraPaginada();
-    }
-  });
+document.getElementById("bitacora-first-page").addEventListener("click", () => {
+  if (paginaActual !== 1) {
+    paginaActual = 1;
+    cargarBitacoraPaginada();
+  }
+});
 
-  document.getElementById("bitacora-last-page").addEventListener("click", () => {
-    if (paginaActual !== totalPaginas) {
-      paginaActual = totalPaginas;
-      cargarBitacoraPaginada();
-    }
-  });
+document.getElementById("bitacora-last-page").addEventListener("click", () => {
+  if (paginaActual !== totalPaginas) {
+    paginaActual = totalPaginas;
+    cargarBitacoraPaginada();
+  }
+});
 
-  document.getElementById("bitacora-prev-page").addEventListener("click", () => {
-    if (paginaActual > 1) {
-      paginaActual--;
-      cargarBitacoraPaginada();
-    }
-  });
+document.getElementById("bitacora-prev-page").addEventListener("click", () => {
+  if (paginaActual > 1) {
+    paginaActual--;
+    cargarBitacoraPaginada();
+  }
+});
 
-  document.getElementById("bitacora-next-page").addEventListener("click", () => {
-    if (paginaActual < totalPaginas) {
-      paginaActual++;
-      cargarBitacoraPaginada();
-    }
+document.getElementById("bitacora-next-page").addEventListener("click", () => {
+  if (paginaActual < totalPaginas) {
+    paginaActual++;
+    cargarBitacoraPaginada();
+  }
+});
+
+const btnPermisos = document.getElementById("btn-cargar-permisos");
+const seccionPermisos = document.getElementById("seccion-permisos");
+const selectUser = document.getElementById("select-user");
+const checkboxesContainer = document.getElementById("permisos-checkboxes");
+
+btnPermisos.addEventListener("click", async () => {
+  if (seccionPermisos.style.display === "none") {
+    seccionPermisos.style.display = "block";
+    btnPermisos.innerText = "Ocultar gestión de permisos";
+    await cargarUsuariosEnSelect();
+    await cargarPermisosDisponibles();
+  } else {
+    seccionPermisos.style.display = "none";
+    btnPermisos.innerText = "Ver gestión de permisos";
+  }
+});
+
+async function cargarUsuariosEnSelect() {
+  const res = await fetch(`http://localhost:3000/api/admin/usuarios?userId=${user.id}&username=${username}`);
+  const users = await res.json();
+  selectUser.innerHTML = '<option value="">Seleccione un usuario</option>';
+  users.forEach(user => {
+    const option = document.createElement("option");
+    option.value = user.id;
+    option.textContent = `${user.newusername} (${user.email})`;
+    selectUser.appendChild(option);
   });
+}
+
+async function cargarPermisosDisponibles() {
+  const res = await fetch(`http://localhost:3000/api/admin/permisos-disponibles?userId=${user.id}&username=${username}`);
+  const permisos = await res.json();
+  checkboxesContainer.innerHTML = "";
+  permisos.forEach(p => {
+    const label = document.createElement("label");
+    label.innerHTML = `
+      <input type="checkbox" value="${p.name}" class="permiso-checkbox" /> ${p.name}
+    `;
+    checkboxesContainer.appendChild(label);
+    checkboxesContainer.appendChild(document.createElement("br"));
+  });
+}
+
+// Cargar permisos actuales cuando se selecciona un usuario
+selectUser.addEventListener("change", async () => {
+  const userId = selectUser.value;
+  if (!userId) return;
+
+  const res = await fetch(`http://localhost:3000/api/admin/permisos-usuario/${userId}?userId=${user.id}&username=${username}`);
+  const permisosUsuario = await res.json();
+
+  document.querySelectorAll(".permiso-checkbox").forEach(checkbox => {
+    checkbox.checked = permisosUsuario.includes(checkbox.value);
+  });
+});
+
+// Guardar cambios
+document.getElementById("guardar-permisos").addEventListener("click", async () => {
+  const userId = selectUser.value;
+  if (!userId) return alert("Seleccione un usuario");
+
+  const permisosMarcados = Array.from(document.querySelectorAll(".permiso-checkbox"))
+    .filter(cb => cb.checked)
+    .map(cb => cb.value);
+
+  const res = await fetch(`http://localhost:3000/api/admin/permisos?userId=${user.id}&username=${username}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId, permisos: permisosMarcados })
+    });
+
+
+  const result = await res.json();
+  if (result.success) {
+    alert("Permisos actualizados");
+  } else {
+    alert("Error al actualizar permisos");
+  }
+});
+  
 });

@@ -3,8 +3,9 @@ const { crearHabitacion } = require('../services/roomService');
 const { crearUsuario, actualizarUsuario, eliminarUsuario } = require('../services/userService');
 const pool = require('../db/connection');
 const registrarBitacora = require('../utils/bitacoraLogger');
-const { obtenerUsuariosPaginados, obtenerBitacoraPaginada } = require('../services/paginationService');
+const { obtenerUsuariosPaginados} = require('../services/paginationService');
 const { obtenerEstadisticas, obtenerTodosLosUsuarios } = require('../services/statsService');
+const { obtenerBitacoraPaginada } = require('../services/bitacoraService');
 
 
 
@@ -134,13 +135,19 @@ const getBitacoraPaginated = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const search = req.query.search || "";
 
-    const resultado = await obtenerBitacoraPaginada({ page, limit, search });
-    res.json(resultado);
+    const { registros, total } = await obtenerBitacoraPaginada({ page, limit, search });
+
+    res.status(200).json({
+      success: true,
+      data: registros,
+      total
+    });
   } catch (error) {
     console.error("Error al obtener bitácora paginada:", error.message);
     res.status(500).json({ error: 'Error al obtener bitácora paginada' });
   }
 };
+
 
 const getStats = async (req, res) => {
   try {

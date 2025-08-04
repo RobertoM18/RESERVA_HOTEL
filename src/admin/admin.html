@@ -28,7 +28,7 @@
           <button type="submit"><i class="fas fa-plus-circle"></i> Crear habitación</button>
         </form>
       </section>
-
+      
       <!-- Sección: Estadísticas -->
       <section class="card">
         <h2><i class="fas fa-chart-line"></i> Estadísticas del sistema</h2>
@@ -83,6 +83,26 @@
           <div class="pagination" id="usuarios-pagination"></div>
         </div>
       </section>
+
+      <!-- ================= GESTIÓN DE PERMISOS ================= -->
+          <section id="seccion-permisos" class="card" style="display:none;">
+            <h2>Gestión de Permisos</h2>
+            <label for="select-user">Seleccionar usuario:</label>
+            <select id="select-user">
+              <option value="">Seleccione un usuario</option>
+              <!-- Se llenará dinámicamente -->
+            </select>
+
+            <div id="permisos-checkboxes" style="margin-top: 1rem;">
+              <!-- Aquí se cargan los permisos como checkboxes -->
+            </div>
+
+            <button id="guardar-permisos">Guardar cambios</button>
+          </section>
+
+          <button id="btn-cargar-permisos">Ver gestión de permisos</button>
+
+
 
       <!-- Sección: Bitácora -->
       <section class="card">
