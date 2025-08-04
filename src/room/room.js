@@ -25,11 +25,13 @@ if (logoutBtn) {
   logoutBtn.addEventListener('click', async function (event) {
     event.preventDefault();
 
-    if (!user || !user.id || !user.username) {
+    if (!user || !user.id) {
       console.warn("No se encontró el usuario en localStorage.");
     } else {
+      const username = user.newusername || user.username;
+
       try {
-        const response = await fetch(`http://localhost:3000/api/users/logout?userId=${user.id}&username=${user.username}`, {
+        const response = await fetch(`http://localhost:3000/api/users/logout?userId=${user.id}&username=${username}`, {
           method: "POST"
         });
 
@@ -45,10 +47,10 @@ if (logoutBtn) {
     }
 
     localStorage.removeItem('user');
-    localStorage.removeItem('token');
     window.location.href = "../login/login.html";
   });
 }
+
 
   function renderPagination() {
     pagination.innerHTML = "";
@@ -219,17 +221,17 @@ if (logoutBtn) {
       const checkIn = localStorage.getItem("checkInDate");
       const checkOut = localStorage.getItem("checkOutDate");
 
-      const reservaRes = await fetch("http://localhost:3000/api/rooms/reserva", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          roomId,
-          guestId: guest.id,
-          checkIn,
-          checkOut
-        })
-      });
+      const reservaRes = await fetch(`http://localhost:3000/api/rooms/reserva?userId=${user.id}&username=${user.newusername}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            guest_id: guest.id,
+            room_id: roomId,
+            entry_date: checkIn,
+            departure_date: checkOut
+          })
+        });
+
 
       if (reservaRes.ok) {
         alert("Reserva realizada exitosamente.");
@@ -264,18 +266,18 @@ if (logoutBtn) {
     }
 
     try {
-      const res = await fetch("http://localhost:3000/api/rooms/reserva", {
+      const res = await fetch(`http://localhost:3000/api/rooms/reserva?userId=${user.id}&username=${user.newusername}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: user.id,
-          roomId,
-          guestId: null,
-          checkIn,
-          checkOut,
-          people
+          guest_id: null,
+          room_id: roomId,
+          entry_date: checkIn,
+          departure_date: checkOut,
+          people // aunque el backend actual no lo usa, puedes dejarlo
         })
       });
+
 
       if (res.ok) {
         alert("Reserva realizada con éxito.");

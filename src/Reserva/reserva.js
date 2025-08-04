@@ -23,12 +23,12 @@ document.addEventListener("DOMContentLoaded", async function () {
       const card = document.createElement("div");
       card.classList.add("reserva-card");
 
-      const reservaId = reserva.reservation_id;
+      const reservaId = reserva.id;
 
-      if (!reservaId) {
-        console.warn("Reserva sin ID:", reserva);
-        return;
-      }
+        if (!reservaId) {
+          console.warn("Reserva sin ID:", reserva);
+          return;
+        }
 
       // Depuración de imagen
       console.log("URL de imagen:", reserva.imagen);
@@ -40,8 +40,8 @@ document.addEventListener("DOMContentLoaded", async function () {
           onerror="this.onerror=null;this.src='https://via.placeholder.com/300x200?text=Imagen+no+disponible';"
         />
         <div class="info">
-          <h3>${reserva.room_name}</h3>
-          <p><strong>Tipo:</strong> ${reserva.room_type}</p>
+          <h3>${reserva.nombre_habitacion}</h3>
+          <p><strong>Tipo:</strong> ${reserva.tipo}</p>
           <p><strong>Entrada:</strong> ${reserva.entry_date}</p>
           <p><strong>Salida:</strong> ${reserva.departure_date}</p>
           <p><strong>Estado:</strong> ${reserva.state}</p>
@@ -65,16 +65,12 @@ document.addEventListener("DOMContentLoaded", async function () {
           if (!confirm("¿Estás seguro de cancelar esta reserva?")) return;
 
           try {
-            const cancelRes = await fetch(`http://localhost:3000/api/users/reservas/${reservaId}/cancelar`, {
+            const cancelRes = await fetch(`http://localhost:3000/api/users/reservas/${reservaId}/cancelar?userId=${user.id}&username=${user.newusername}`, {
               method: "PUT",
               headers: {
                 "Content-Type": "application/json"
-              },
-              body: JSON.stringify({ 
-                userId: user.id,
-                username: user.newusername }) 
+              }
             });
-
             if (!cancelRes.ok) {
               const errorText = await cancelRes.text();
               throw new Error(`Error HTTP: ${cancelRes.status} - ${errorText}`);
