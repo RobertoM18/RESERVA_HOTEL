@@ -7,8 +7,7 @@ const { obtenerUsuariosPaginados} = require('../services/paginationService');
 const { obtenerEstadisticas, obtenerTodosLosUsuarios } = require('../services/statsService');
 const { obtenerBitacoraPaginada } = require('../services/bitacoraService');
 
-
-
+//Crear habitacion
 const createRoom = async (req, res) => {
   const adminId = req.query.userId;
   const datos = req.body;
@@ -33,7 +32,7 @@ const createRoom = async (req, res) => {
     res.status(500).json({ error: "Error al crear habitación" });
   }
 };
-
+//Crear Usuario desde Admin
 const createUserFromAdmin = async (req, res) => {
   const adminId = req.query.userId;
   const datos = req.body;
@@ -63,7 +62,7 @@ const createUserFromAdmin = async (req, res) => {
     res.status(500).json({ error: "Error interno al crear usuario" });
   }
 };
-
+//Actualizar Usuario
 const updateUser = async (req, res) => {
   const adminId = req.query.userId;
   const { id } = req.params;
@@ -91,7 +90,7 @@ const updateUser = async (req, res) => {
     res.status(500).json({ error: "Error al actualizar usuario" });
   }
 };
-
+//Eliminar Usuario
 const deleteUser = async (req, res) => {
   const adminId = req.query.userId;
   const { id } = req.params;
@@ -114,7 +113,7 @@ const deleteUser = async (req, res) => {
     res.status(500).json({ error: "Error al eliminar usuario" });
   }
 };
-
+//Obtener usuarios paginados
 const getUsuariosPaginados = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -128,7 +127,7 @@ const getUsuariosPaginados = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener usuarios paginados' });
   }
 };
-
+//Obtener Bitacora paginada
 const getBitacoraPaginated = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -147,8 +146,7 @@ const getBitacoraPaginated = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener bitácora paginada' });
   }
 };
-
-
+//Obtener estadisticas del sistema
 const getStats = async (req, res) => {
   try {
     const stats = await obtenerEstadisticas();
@@ -158,7 +156,7 @@ const getStats = async (req, res) => {
     res.status(500).json({ error: "Error al obtener estadísticas del sistema" });
   }
 };
-
+//Obtener todos los usuarios
 const getAllUsers = async (req, res) => {
   try {
     const users = await obtenerTodosLosUsuarios();
