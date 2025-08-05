@@ -8,11 +8,12 @@ const { getReservasActivasUsuario } = require('../controllers/adminControllers')
 const {
   getPermisosDisponibles,
   getPermisosDeUsuario,
-  asignarPermisosAUsuario
+  asignarPermisosAUsuario,
+  revocarPermiso
 } = require('../controllers/permisosController');
 
 const { 
-  createRoom, 
+  crearHabitacionDesdeProcedimiento , 
   getStats,
   getAllUsers,
   updateUser,
@@ -20,7 +21,8 @@ const {
   createUserFromAdmin,
   getBitacoraPaginated,
   getUsuariosPaginados,
-  getIngresosTotales           
+  getIngresosTotales,
+  resetearPassword           
 } = require('../controllers/adminControllers');
 
 // Gestión de habitaciones
@@ -28,7 +30,7 @@ router.post(
   '/crear-habitacion', 
   isAdmin, 
   checkPermission('CREATE_ROOM'), 
-  createRoom
+  crearHabitacionDesdeProcedimiento 
 );
 
 // Estadísticas
@@ -105,9 +107,23 @@ router.post(
   asignarPermisosAUsuario
 );
 
+router.post(
+  '/permisos/revocar',
+  isAdmin,
+  checkPermission('MANAGE_PERMISSIONS'),
+  revocarPermiso
+);
+
 router.get('/ingresos', isAdmin, getIngresosTotales);
 
 router.get('/reservas-activas/:id', isAdmin , getReservasActivasUsuario);
+
+router.post(
+  '/resetear-password',
+  isAdmin,
+  checkPermission('UPDATE_USER'),
+  resetearPassword
+);
 
 
 module.exports = router;

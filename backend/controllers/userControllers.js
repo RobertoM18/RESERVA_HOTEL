@@ -3,6 +3,7 @@ const { registerUser, loginUser, logoutUser } = require('../services/authService
 const { createReservation, getUserReservations, cancelarReserva } = require('../services/reservationService');
 const { registerGuest, getGuests } = require('../services/guestService');
 const { getPaginatedRooms, getAllRooms, obtenerHabitacionesDisponibles} = require('../services/roomService');
+const { cambiarPassword } = require('../services/userService');
 // Obtener las habitaciones dispoibles. - funcion 3
 const getHabitacionesDisponibles = async (req, res) => {
   const { fecha_inicio, fecha_fin } = req.query;
@@ -19,6 +20,18 @@ const getHabitacionesDisponibles = async (req, res) => {
     res.status(500).json({ error: "Error interno" });
   }
 };
+//Cambiar Contraseña de usuario - Procedimiento 4
+const cambiarPasswordUsuario = async (req, res) => {
+  const { userId, passwordActual, nuevaPassword } = req.body;
+
+  try {
+    const resultado = await cambiarPassword(userId, passwordActual, nuevaPassword);
+    res.json(resultado);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
 
 module.exports = {
   registerUser,
@@ -31,5 +44,6 @@ module.exports = {
   registerGuest,
   getGuests,
   getPaginatedRooms,
-  getHabitacionesDisponibles
+  getHabitacionesDisponibles,
+  cambiarPasswordUsuario
 };

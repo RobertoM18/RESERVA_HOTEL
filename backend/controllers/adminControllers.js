@@ -1,37 +1,30 @@
 // backend/controllers/adminControllers.js
 const { crearHabitacion } = require('../services/roomService');
-const { crearUsuario, actualizarUsuario, eliminarUsuario } = require('../services/userService');
+const { crearUsuario, actualizarUsuario, eliminarUsuario, resetearPasswordUsuario} = require('../services/userService');
 const pool = require('../db/connection');
 const registrarBitacora = require('../utils/bitacoraLogger');
 const { obtenerUsuariosPaginados} = require('../services/paginationService');
 const { obtenerEstadisticas, obtenerTodosLosUsuarios, calcularIngresosTotales } = require('../services/statsService');
 const { obtenerBitacoraPaginada } = require('../services/bitacoraService');
 
-//Crear habitacion
-const createRoom = async (req, res) => {
-  const adminId = req.query.userId;
+//Crear habitacion - PROCEDIMIENTO 3
+const crearHabitacionDesdeProcedimiento = async (req, res) => {
   const datos = req.body;
 
-  if (Object.values(datos).some(val => !val)) {
-    return res.status(400).json({ error: 'Faltan datos obligatorios.' });
+  // Validar campos obligatorios
+  if (Object.values(datos).some(val => val === undefined || val === null)) {
+    return res.status(400).json({ error: 'Faltan datos obligatorios' });
   }
 
   try {
-    const room = await crearHabitacion(datos);
-    await registrarBitacora({
-      users_id: adminId,
-      username: req.query.username || 'admin',
-      tabla_afectada: 'rooms',
-      tipo_accion: 'Crear',
-      descripcion: `Creó habitación: ${datos.name}`,
-      req
-    });
-    res.status(201).json(room);
-  } catch (err) {
-    console.error("Error al crear habitación:", err);
-    res.status(500).json({ error: "Error al crear habitación" });
+    await crearHabitacion(datos); // llama al procedimiento
+    res.json({ success: true, message: 'Habitación creada correctamente.' });
+  } catch (error) {
+    console.error('Error al crear habitación:', error);
+    res.status(500).json({ error: 'Error al crear la habitación' });
   }
 };
+
 //Crear Usuario desde Admin
 const createUserFromAdmin = async (req, res) => {
   const adminId = req.query.userId;
@@ -193,9 +186,25 @@ const getIngresosTotales = async (req, res) => {
     res.status(500).json({ error: "Error interno del servidor" });
   }
 };
+//Resetear contraseña de usuario - PROCEDIMIENTO 4
+const resetearPassword = async (req, res) => {
+  const { user_id, nueva_password_encriptada } = req.body;
+
+  if (!user_id || !nueva_password_encriptada) {
+    return res.status(400).json({ error: 'Faltan datos obligatorios' });
+  }
+
+  try {
+    await resetearPasswordUsuario(user_id, nueva_password_encriptada);
+    res.json({ success: true, message: 'Contraseña restablecida correctamente.' });
+  } catch (error) {
+    console.error('Error al resetear contraseña:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
 
 module.exports = {
-  createRoom,
+  crearHabitacionDesdeProcedimiento ,
   createUserFromAdmin,
   updateUser,
   deleteUser,
@@ -204,5 +213,6 @@ module.exports = {
   getStats,
   getAllUsers,
   getReservasActivasUsuario,
-  getIngresosTotales
+  getIngresosTotales,
+  resetearPassword
 };

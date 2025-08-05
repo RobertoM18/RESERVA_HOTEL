@@ -26,11 +26,41 @@ const actualizarUsuario = async ({ id, newusername, email, phone, rol_id }) => {
 const eliminarUsuario = async (id) => {
   await pool.query('DELETE FROM users WHERE id = $1', [id]);
 };
+// Resetear contraseña de usuario - PROCEDIMIENTO 4
+const resetearPasswordUsuario = async (userId, nuevaPasswordHash) => {
+  await pool.query(`CALL resetear_password_usuario($1, $2, $3)`, [
+    userId,
+    nuevaPasswordHash,
+    null
+  ]);
+};
 
+const cambiarPassword = async (userId, passwordActual, nuevaPassword) => {
+  const userResult = await pool.query('SELECT newpassword FROM users WHERE id = $1', [userId]);
 
+  if (userResult.rows.length === 0) {
+    throw new Error('Usuario no encontrado');
+  }
+
+  const hashActual = userResult.rows[0].newpassword;
+  const coincide = await bcrypt.compare(passwordActual, hashActual);
+
+  if (!coincide) {
+    throw new Error('La contraseña actual no es correcta');
+  }
+
+  const nuevaPasswordHash = await bcrypt.hash(nuevaPassword, 10);
+
+  // Llamada al procedimiento
+  await pool.query('CALL actualizar_password_usuario($1, $2)', [userId, nuevaPasswordHash]);
+
+  return { success: true, message: 'Contraseña actualizada correctamente' };
+};
 
 module.exports = {
   crearUsuario,
   actualizarUsuario,
-  eliminarUsuario
+  eliminarUsuario,
+  resetearPasswordUsuario,
+  cambiarPassword
 };

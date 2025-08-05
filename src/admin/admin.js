@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       if (!res.ok) throw new Error("No autorizado o error en datos");
       const data = await res.json();
-      alert("Habitación creada: " + data.name);
+      alert("Habitación creada");
       e.target.reset();
     } catch (err) {
       alert("Error al crear habitación: " + err.message);

@@ -1,15 +1,18 @@
 const pool = require('../db/connection');
 
-// Crear una habitación
+// Crear una habitación - PROCEDIMIENTO 3
 const crearHabitacion = async ({ name, price, ability, imagen, category, type_id }) => {
-  const result = await pool.query(`
-    INSERT INTO rooms (name, price, ability, imagen, category, type_id)
-    VALUES ($1, $2, $3, $4, $5, $6)
-    RETURNING *`,
-    [name, price, ability, imagen, category, type_id]
-  );
-  return result.rows[0];
+  await pool.query(`CALL crear_habitacion_completa($1, $2, $3, $4, $5, $6, $7)`, [
+    name,
+    price,
+    ability,
+    category,
+    type_id,
+    imagen,
+    null
+  ]);
 };
+
 
 // Obtener todas las habitaciones (sin filtros ni paginación)
 const getAllRooms = async () => {

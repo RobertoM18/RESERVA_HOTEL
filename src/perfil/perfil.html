@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Perfil de Usuario</title>
+  <link rel="stylesheet" href="perfil.css" />
+</head>
+<body>
+  <div class="perfil-container">
+    <h2>Actualizar Contraseña</h2>
+    <form id="form-actualizar-password">
+      <div class="campo">
+        <label for="password-actual">Contraseña actual:</label>
+        <input type="password" id="password-actual" required />
+      </div>
+      <div class="campo">
+        <label for="nueva-password">Nueva contraseña:</label>
+        <input type="password" id="nueva-password" required />
+      </div>
+      <div class="campo">
+        <label for="confirmar-password">Confirmar nueva contraseña:</label>
+        <input type="password" id="confirmar-password" required />
+      </div>
+      <button type="submit">Actualizar contraseña</button>
+    </form>
+    <p id="mensaje-password" class="mensaje"></p>
+  </div>
+  <script src="perfil.js"></script>
+</body>
+</html>

@@ -31,7 +31,7 @@ const getPermisosDeUsuario = async (req, res) => {
   }
 };
 
-// Asignar nueva lista de permisos (reemplaza todos los anteriores)
+// Asignar nueva lista de permisos - PROCEDIMIENTO 1
 const asignarPermisosAUsuario = async (req, res) => {
   const { user_id, permisos } = req.body;
   const client = await pool.connect();
@@ -50,12 +50,11 @@ const asignarPermisosAUsuario = async (req, res) => {
     // Eliminar permisos actuales del usuario
     await client.query('DELETE FROM user_permissions WHERE user_id = $1', [user_id]);
 
-    // Insertar nuevos permisos
+    // Insertar nuevos permisos usando el procedimiento almacenado
     for (const permiso of permisosIds) {
       await client.query(
-        `INSERT INTO user_permissions (user_id, permission_id)
-         VALUES ($1, $2)`,
-        [user_id, permiso.id]
+        `CALL asignar_permiso_usuario($1, $2, $3)`,
+        [user_id, permiso.id, null]
       );
     }
 
@@ -69,9 +68,25 @@ const asignarPermisosAUsuario = async (req, res) => {
     client.release();
   }
 };
+// Revocar un permiso específico de un usuario - PROCEDIMIENTO 2
+  const revocarPermiso = async (req, res) => {
+    const { user_id, permiso_id } = req.body;
+
+    try {
+      await pool.query(
+        `CALL revocar_permiso_usuario($1, $2, $3)`,
+        [user_id, permiso_id, null]
+      );
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error al revocar permiso:", error);
+      res.status(500).json({ success: false, error: 'Error al revocar permiso' });
+    }
+  };
 
 module.exports = {
   getPermisosDisponibles,
   getPermisosDeUsuario,
-  asignarPermisosAUsuario
+  asignarPermisosAUsuario,
+  revocarPermiso
 };
