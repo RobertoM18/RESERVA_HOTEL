@@ -4,7 +4,7 @@ const { crearUsuario, actualizarUsuario, eliminarUsuario } = require('../service
 const pool = require('../db/connection');
 const registrarBitacora = require('../utils/bitacoraLogger');
 const { obtenerUsuariosPaginados} = require('../services/paginationService');
-const { obtenerEstadisticas, obtenerTodosLosUsuarios } = require('../services/statsService');
+const { obtenerEstadisticas, obtenerTodosLosUsuarios, calcularIngresosTotales } = require('../services/statsService');
 const { obtenerBitacoraPaginada } = require('../services/bitacoraService');
 
 //Crear habitacion
@@ -146,7 +146,7 @@ const getBitacoraPaginated = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener bitácora paginada' });
   }
 };
-//Obtener estadisticas del sistema
+//Obtener estadisticas del sistema - funcion 2
 const getStats = async (req, res) => {
   try {
     const stats = await obtenerEstadisticas();
@@ -166,7 +166,33 @@ const getAllUsers = async (req, res) => {
     res.status(500).json({ error: "Error al obtener usuarios" });
   }
 };
+//Obtener reservas activas por usuario - Funcion 1
+const getReservasActivasUsuario = async (req, res) => {
+  const userId = parseInt(req.params.id);
+  if (!userId) return res.status(400).json({ error: 'ID de usuario requerido' });
 
+  try {
+    const result = await pool.query('SELECT * FROM obtener_reservas_activas($1)', [userId]);
+    res.json(result.rows); 
+  } catch (err) {
+    console.error("Error al obtener reservas activas:", err.message);
+    res.status(500).json({ error: 'Error al obtener reservas activas' });
+  }
+};
+//Calcular ingresos totales en un rango de fechas - funcion 4
+const getIngresosTotales = async (req, res) => {
+  const { fechaInicio, fechaFin } = req.query;
+  try {
+    if (!fechaInicio || !fechaFin) {
+      return res.status(400).json({ error: "Faltan fechas" });
+    }
+    const total = await calcularIngresosTotales(fechaInicio, fechaFin);
+    res.json({ total });
+  } catch (err) {
+    console.error("Error al calcular ingresos:", err);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+};
 
 module.exports = {
   createRoom,
@@ -176,5 +202,7 @@ module.exports = {
   getUsuariosPaginados,
   getBitacoraPaginated,
   getStats,
-  getAllUsers
+  getAllUsers,
+  getReservasActivasUsuario,
+  getIngresosTotales
 };

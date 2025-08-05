@@ -90,9 +90,18 @@ const getPaginatedRooms = async ({
     currentPage: page
   };
 };
+// Funcion para obtener habitaciones disponibles. funcion 3
+const obtenerHabitacionesDisponibles = async (fechaInicio, fechaFin) => {
+  const result = await pool.query(
+    'SELECT * FROM obtener_habitaciones_disponibles($1, $2)',
+    [fechaInicio, fechaFin]
+  );
+  return result.rows;
+};
 
 module.exports = {
   crearHabitacion,
   getAllRooms,
-  getPaginatedRooms
+  getPaginatedRooms,
+  obtenerHabitacionesDisponibles
 };

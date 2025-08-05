@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getPaginatedRooms, createReservation } = require('../controllers/userControllers');
+const { getPaginatedRooms, createReservation, getHabitacionesDisponibles} = require('../controllers/userControllers');
 
 router.get('/', async (req, res) => {
   try {
@@ -13,5 +13,6 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/reserva', createReservation);
+router.get('/disponibles', getHabitacionesDisponibles);
 
 module.exports = router;

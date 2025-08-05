@@ -74,24 +74,24 @@ document.addEventListener("DOMContentLoaded", () => {
       btnEstadisticas.innerHTML = "Ver estadísticas";
     }
   });
-
+//Cargar Estadiscticas - funcion 2
   async function cargarEstadisticas() {
     try {
       const res = await fetch(`http://localhost:3000/api/admin/estadisticas?userId=${userId}&username=${username}`);
       const stats = await res.json();
       if (!res.ok) throw new Error(stats.error || "Acceso denegado");
+
       divEstadisticas.innerHTML = `
-        <p>Total de usuarios: ${stats.totalUsuarios}</p>
-        <p>Reservas activas: ${stats.reservasActivas}</p>
-        <p>Reservas canceladas: ${stats.reservasCanceladas}</p>
-        <p>Total de reservas: ${stats.totalReservas}</p>
-        <p>Habitaciones registradas: ${stats.habitacionesRegistradas}</p>
+        <p>Total de usuarios: ${stats.total_usuarios}</p>
+        <p>Reservas activas: ${stats.reservas_activas}</p>
+        <p>Reservas canceladas: ${stats.reservas_canceladas}</p>
+        <p>Total de reservas: ${stats.total_reservas}</p>
+        <p>Habitaciones registradas: ${stats.habitaciones_registradas}</p>
       `;
     } catch (err) {
       alert("Error al obtener estadísticas: " + err.message);
     }
   }
-
   // ================== GESTIÓN DE USUARIOS ==================
   const btnCargarUsuarios = document.getElementById("btn-cargar-usuarios");
   const seccionUsuarios = document.querySelector(".seccion-usuarios");
@@ -120,6 +120,70 @@ document.addEventListener("DOMContentLoaded", () => {
       await cargarUsuariosPaginados();
     }
   });
+
+// ================== RESERVAS ACTIVAS POR USUARIO ==================
+const btnReservasUsuario = document.getElementById("btn-cargar-reservas");
+const seccionReservas = document.getElementById("seccion-reservas");
+const selectReservas = document.getElementById("select-reservas");
+const contenedorReservas = document.getElementById("contenedor-reservas");
+
+btnReservasUsuario.addEventListener("click", async () => {
+  if (seccionReservas.style.display === "none") {
+    seccionReservas.style.display = "block";
+    btnReservasUsuario.innerText = "Ocultar reservas";
+    await cargarUsuariosParaReservas();
+  } else {
+    seccionReservas.style.display = "none";
+    btnReservasUsuario.innerText = "Ver reservas por usuario";
+  }
+});
+
+async function cargarUsuariosParaReservas() {
+  const res = await fetch(`http://localhost:3000/api/admin/usuarios?userId=${userId}&username=${username}`);
+  const users = await res.json();
+  selectReservas.innerHTML = '<option value="">Seleccione un usuario</option>';
+  users.forEach(user => {
+    const option = document.createElement("option");
+    option.value = user.id;
+    option.textContent = `${user.newusername} (${user.email})`;
+    selectReservas.appendChild(option);
+  });
+}
+//Mostrar Reservas activas
+    selectReservas.addEventListener("change", async () => {
+      const selectedUserId = selectReservas.value;
+      if (!selectedUserId) return;
+
+      try {
+        const res = await fetch(`http://localhost:3000/api/admin/reservas-activas/${selectedUserId}?userId=${user.id}&username=${username}`);
+        const reservas = await res.json();
+
+        contenedorReservas.innerHTML = "";
+        if (reservas.length === 0) {
+          contenedorReservas.textContent = "No hay reservas activas para este usuario.";
+          return;
+        }
+
+        reservas.forEach(r => {
+          const div = document.createElement("div");
+          div.classList.add("reserva-card");
+          div.innerHTML = `
+            <p><strong>Reserva ID:</strong> ${r.id}</p>
+            <p><strong>Habitación:</strong> ${r.room_name}</p>
+            <p><strong>Entrada:</strong> ${new Date(r.entry_date).toLocaleDateString()}</p>
+            <p><strong>Salida:</strong> ${new Date(r.departure_date).toLocaleDateString()}</p>
+            <p><strong>Personas:</strong> ${r.people}</p>
+            ${r.imagen ? `<img src="${r.imagen}" alt="Habitación" width="150">` : ''}
+          `;
+          contenedorReservas.appendChild(div);
+        });
+
+      } catch (err) {
+        alert("Error al obtener reservas: " + err.message);
+      }
+    });
+
+
 
 //OBTENER USUARIOS PAGINADOS
   async function cargarUsuariosPaginados() {
@@ -497,4 +561,28 @@ document.getElementById("guardar-permisos").addEventListener("click", async () =
   }
 });
   
+
+document.getElementById("calcular-ingresos-btn").addEventListener("click", async () => {
+  const fechaInicio = document.getElementById("ingreso-inicio").value;
+  const fechaFin = document.getElementById("ingreso-fin").value;
+  const resultadoP = document.getElementById("resultado-ingresos");
+
+  if (!fechaInicio || !fechaFin) {
+    alert("Selecciona ambas fechas.");
+    return;
+  }
+
+  try {
+    const res = await fetch(`http://localhost:3000/api/admin/ingresos?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}&userId=${user.id}&username=${user.newusername}`);
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || "Error en el servidor");
+
+    resultadoP.textContent = `Ingresos totales: $${parseFloat(data.total).toFixed(2)}`;
+  } catch (err) {
+    resultadoP.textContent = "Error al calcular ingresos.";
+    console.error("Error:", err.message);
+  }
+});
+
 });

@@ -291,4 +291,33 @@ if (logoutBtn) {
       alert("Error al reservar: " + err.message);
     }
   });
+
+  document.getElementById("buscar-disponibles").addEventListener("click", async () => {
+  const dateRange = dateInput.value;
+
+  if (!dateRange || !dateRange.includes(" to ")) {
+    alert("Selecciona un rango de fechas válido.");
+    return;
+  }
+
+  const [fecha_inicio, fecha_fin] = dateRange.split(" to ").map(f => f.trim());
+
+  try {
+    const res = await fetch(`http://localhost:3000/api/rooms/disponibles?fecha_inicio=${fecha_inicio}&fecha_fin=${fecha_fin}`);
+    const habitaciones = await res.json();
+
+    if (Array.isArray(habitaciones)) {
+      totalPages = 1; // paginación desactivada en modo disponibilidad
+      currentPage = 1;
+      displayRooms(habitaciones);
+    } else {
+      throw new Error("Formato de respuesta inválido");
+    }
+  } catch (err) {
+    console.error("Error al buscar habitaciones disponibles:", err);
+    alert("Error al buscar habitaciones disponibles: " + err.message);
+  }
 });
+});
+
+

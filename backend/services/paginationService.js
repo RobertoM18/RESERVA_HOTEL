@@ -1,5 +1,5 @@
 const pool = require('../db/connection');
-
+//Servicio para paginacion de usuarios y bitacora
 const obtenerUsuariosPaginados = async ({ page, limit, search }) => {
   const offset = (page - 1) * limit;
   const filtro = search?.toLowerCase() || "";
@@ -28,7 +28,7 @@ const obtenerUsuariosPaginados = async ({ page, limit, search }) => {
     currentPage: page,
   };
 };
-
+//Obtener bitacora paginada
 const obtenerBitacoraPaginada = async ({ page, limit, search }) => {
   const offset = (page - 1) * limit;
   const filtro = search?.toLowerCase() || "";
