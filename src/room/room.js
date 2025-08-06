@@ -195,17 +195,19 @@ if (logoutBtn) {
   });
 
   document.getElementById("guest-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    //RESERVACION
+    const errorDiv = document.getElementById("guest-error");
+    errorDiv.textContent = ""; // limpiar error anterior
+
     const user = JSON.parse(localStorage.getItem("user"));
     const guestData = {
-      first_name: document.getElementById("first-name").value,
-      last_name: document.getElementById("last-name").value,
-      dni: document.getElementById("dni").value,
-      email: document.getElementById("email").value,
-      phone: document.getElementById("phone").value,
-      nationality: document.getElementById("nationality").value,
+      first_name: document.getElementById("first-name").value.trim(),
+      last_name: document.getElementById("last-name").value.trim(),
+      dni: document.getElementById("dni").value.trim(),
+      email: document.getElementById("email").value.trim(),
+      phone: document.getElementById("phone").value.trim(),
+      nationality: document.getElementById("nationality").value.trim(),
       userId: user.id
     };
 
@@ -217,35 +219,44 @@ if (logoutBtn) {
       });
 
       const guest = await guestRes.json();
+
+      if (!guestRes.ok) {
+        const errorMsg =
+          guest.error || guest.message || guest.detail || "Error al registrar huésped.";
+        errorDiv.textContent = errorMsg;
+        console.warn("Error del trigger:", guest);
+        return;
+      }
+
       const roomId = localStorage.getItem("selectedRoomId");
       const checkIn = localStorage.getItem("checkInDate");
       const checkOut = localStorage.getItem("checkOutDate");
 
       const reservaRes = await fetch(`http://localhost:3000/api/rooms/reserva?userId=${user.id}&username=${user.newusername}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            guest_id: guest.id,
-            room_id: roomId,
-            entry_date: checkIn,
-            departure_date: checkOut
-          })
-        });
-
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          guest_id: guest.id,
+          room_id: roomId,
+          entry_date: checkIn,
+          departure_date: checkOut
+        })
+      });
 
       if (reservaRes.ok) {
         alert("Reserva realizada exitosamente.");
         window.location.href = "../reserva/reserva.html";
       } else {
-        const errorData = await reservaRes.json();  
-        throw new Error(errorData.error || "Error al crear reserva.");
+        const errorData = await reservaRes.json();
+        errorDiv.textContent = errorData.error || "Error al crear reserva.";
       }
 
     } catch (err) {
       console.error("Error durante la reserva:", err);
-      alert("Error: " + err.message);
+      errorDiv.textContent = "Error: " + err.message;
     }
   });
+
 
   document.getElementById("close-self-modal").addEventListener("click", () => {
     document.getElementById("self-modal").classList.add("hidden");

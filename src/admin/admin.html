@@ -110,7 +110,6 @@
               <option value="">Seleccione un usuario</option>
               <!-- Se llenará dinámicamente -->
             </select>
-
             <div id="permisos-checkboxes" style="margin-top: 1rem;">
               <!-- Aquí se cargan los permisos como checkboxes -->
             </div>
@@ -121,6 +120,48 @@
           <button id="btn-cargar-permisos">Ver gestión de permisos</button>
 
 
+<!--Boton para ver permisos-->
+            <button id="btn-cargar-vista-permisos">Ver vista permisos de usuarios</button>
+          <section id="vista-permisos-usuarios" style="display: none;">
+            <table id="tabla-vista-permisos" border="1">
+              <thead>
+                <tr>
+                  <th>ID Usuario</th>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Permiso</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </section>
+
+
+          <button id="btn-cargar-vista-resumen">Ver vista resumen reservas</button>
+
+          <section id="vista-resumen-reservas" style="display: none;">
+            <h2>Resumen de Reservas</h2>
+            <table id="tabla-vista-resumen">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Usuario</th>
+                  <th>Huésped</th>
+                  <th>DNI</th>
+                  <th>Nacionalidad</th>
+                  <th>Habitación</th>
+                  <th>Precio</th>
+                  <th>Categoría</th>
+                  <th>Tipo</th>
+                  <th>Entrada</th>
+                  <th>Salida</th>
+                  <th>Estado</th>
+                  <th>Fecha reserva</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </section>
 
       <!-- Sección: Bitácora -->
       <section class="card">

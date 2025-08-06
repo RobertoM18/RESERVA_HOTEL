@@ -2,19 +2,37 @@ const pool = require('../db/connection');
 const registrarBitacora = require('../utils/bitacoraLogger');
 
 // Registrar huésped
+//trigger 3
 const registerGuest = async (req, res) => {
-  const { first_name, last_name, dni, email, phone, nationality } = req.body;
+  let { first_name, last_name, dni, email, phone, nationality } = req.body;
   const userId = req.query.userId;
+
+  // Limpiar espacios
+  first_name = first_name?.trim();
+  last_name = last_name?.trim();
+  dni = dni?.trim();
+  email = email?.trim();
+  phone = phone?.trim();
+  nationality = nationality?.trim();
 
   if (!first_name || !last_name || !dni || !email) {
     return res.status(400).json({ error: "Faltan campos obligatorios" });
   }
 
   try {
-    const result = await pool.query(`
-      INSERT INTO guest (first_name, last_name, dni, email, phone, nationality)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *`,
+    const existing = await pool.query('SELECT * FROM guest WHERE dni = $1', [dni]);
+
+    if (existing.rows.length > 0) {
+      return res.status(200).json({
+        message: "Huésped ya registrado",
+        guest: existing.rows[0]
+      });
+    }
+    //trigger 1
+    const result = await pool.query(
+      `INSERT INTO guest (first_name, last_name, dni, email, phone, nationality)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
       [first_name, last_name, dni, email, phone || null, nationality || null]
     );
 

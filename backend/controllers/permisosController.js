@@ -50,7 +50,7 @@ const asignarPermisosAUsuario = async (req, res) => {
     // Eliminar permisos actuales del usuario
     await client.query('DELETE FROM user_permissions WHERE user_id = $1', [user_id]);
 
-    // Insertar nuevos permisos usando el procedimiento almacenado
+    // Insertar nuevos permisos usando el procedimiento almacenado - PROCEDIMIENTO 1
     for (const permiso of permisosIds) {
       await client.query(
         `CALL asignar_permiso_usuario($1, $2, $3)`,

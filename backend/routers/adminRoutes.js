@@ -4,7 +4,7 @@ const router = express.Router();
 const isAdmin = require('../middlewares/isAdmin');
 const { checkPermission } = require('../middlewares/checkPermission');
 const { getReservasActivasUsuario } = require('../controllers/adminControllers');
-
+const { obtenerVistaResumenReservas } = require('../controllers/adminControllers');
 const {
   getPermisosDisponibles,
   getPermisosDeUsuario,
@@ -22,7 +22,8 @@ const {
   getBitacoraPaginated,
   getUsuariosPaginados,
   getIngresosTotales,
-  resetearPassword           
+  resetearPassword,
+  getVistaPermisosUsuarios             
 } = require('../controllers/adminControllers');
 
 // Gestión de habitaciones
@@ -125,5 +126,6 @@ router.post(
   resetearPassword
 );
 
-
+router.get('/vista-permisos-usuarios', isAdmin, getVistaPermisosUsuarios);
+router.get('/vista-resumen-reservas', isAdmin, obtenerVistaResumenReservas);
 module.exports = router;

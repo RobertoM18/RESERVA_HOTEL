@@ -585,4 +585,101 @@ document.getElementById("calcular-ingresos-btn").addEventListener("click", async
   }
 });
 
+//VISTAS 1 permiso de usuario 
+const btnVistaPermisos = document.getElementById("btn-cargar-vista-permisos");
+const seccionVistaPermisos = document.getElementById("vista-permisos-usuarios");
+const tablaVistaPermisos = document.querySelector("#tabla-vista-permisos tbody");
+
+btnVistaPermisos.addEventListener("click", async () => {
+  if (seccionVistaPermisos.style.display === "none") {
+    seccionVistaPermisos.style.display = "block";
+    btnVistaPermisos.textContent = "Ocultar vista de permisos";
+
+    try {
+      const res = await fetch(`http://localhost:3000/api/admin/vista-permisos-usuarios?userId=${user.id}&username=${user.newusername}`);
+      const data = await res.json();
+      tablaVistaPermisos.innerHTML = "";
+
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.usuario_id}</td>
+          <td>${row.nombre_usuario}</td>
+          <td>${row.email}</td>
+          <td>${row.permiso}</td>
+        `;
+        tablaVistaPermisos.appendChild(tr);
+      });
+
+    } catch (err) {
+      alert("Error al cargar vista de permisos: " + err.message);
+    }
+
+  } else {
+    seccionVistaPermisos.style.display = "none";
+    btnVistaPermisos.textContent = "Ver vista permisos de usuarios";
+  }
+});
+
+
+//VISTA 2
+const btnVistaResumen = document.getElementById("btn-cargar-vista-resumen");
+const seccionVistaResumen = document.getElementById("vista-resumen-reservas");
+const tablaVistaResumen = document.querySelector("#tabla-vista-resumen tbody");
+
+btnVistaResumen.addEventListener("click", () => {
+  if (seccionVistaResumen.style.display === "none") {
+    seccionVistaResumen.style.display = "block";
+    btnVistaResumen.textContent = "Ocultar vista resumen reservas";
+    cargarVistaResumenReservas();
+  } else {
+    seccionVistaResumen.style.display = "none";
+    btnVistaResumen.textContent = "Ver vista resumen reservas";
+    tablaVistaResumen.innerHTML = "";
+  }
+});
+
+async function cargarVistaResumenReservas() {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const res = await fetch(`http://localhost:3000/api/admin/vista-resumen-reservas?userId=${user.id}&username=${user.newusername}`);
+    
+    if (!res.ok) throw new Error("Fallo en el servidor");
+
+    const data = await res.json();
+    tablaVistaResumen.innerHTML = ""; // Limpia contenido anterior
+
+    data.forEach(row => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${row.reserva_id}</td>
+        <td>${row.usuario_que_reservo}</td>
+        <td>${row.nombre_huesped}</td>
+        <td>${row.dni}</td>
+        <td>${row.nationality}</td>
+        <td>${row.nombre_habitacion}</td>
+        <td>$${parseFloat(row.price).toFixed(2)}</td>
+        <td>${row.category}</td>
+        <td>${row.tipo_habitacion}</td>
+        <td>${formatearFecha(row.fecha_entrada)}</td>
+        <td>${formatearFecha(row.fecha_salida)}</td>
+        <td>${row.estado_reserva}</td>
+        <td>${formatearFecha(row.fecha_creacion_reserva)}</td>
+      `;
+      tablaVistaResumen.appendChild(tr);
+    });
+
+  } catch (error) {
+    console.error("Error al cargar vista resumen de reservas:", error);
+  }
+}
+
+function formatearFecha(fecha) {
+  return new Date(fecha).toLocaleDateString('es-EC', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+}
+
 });

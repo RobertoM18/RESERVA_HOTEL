@@ -25,7 +25,7 @@ const createReservation = async (req, res) => {
     if (conflicto.rows.length > 0) {
       return res.status(400).json({ error: "La habitación ya está reservada en esas fechas" });
     }
-
+    //TRIGGER 3
     const result = await pool.query(
       `INSERT INTO reservations (user_id, guest_id, room_id, entry_date, departure_date, people, state)
       VALUES ($1, $2, $3, $4, $5, $6,'activa')

@@ -6,24 +6,40 @@ const registrarBitacora = require('../utils/bitacoraLogger');
 const { obtenerUsuariosPaginados} = require('../services/paginationService');
 const { obtenerEstadisticas, obtenerTodosLosUsuarios, calcularIngresosTotales } = require('../services/statsService');
 const { obtenerBitacoraPaginada } = require('../services/bitacoraService');
-
+const { obtenerVistaResumenReservasService } = require('../services/viewService');
 //Crear habitacion - PROCEDIMIENTO 3
+const os = require('os'); // este import debe estar al inicio del archivo
+
 const crearHabitacionDesdeProcedimiento = async (req, res) => {
   const datos = req.body;
 
   // Validar campos obligatorios
-  if (Object.values(datos).some(val => val === undefined || val === null)) {
-    return res.status(400).json({ error: 'Faltan datos obligatorios' });
-  }
+    if (Object.values(datos).some(val => val === undefined || val === null)) {
+      return res.status(400).json({ error: 'Faltan datos obligatorios' });
+    }
 
-  try {
-    await crearHabitacion(datos); // llama al procedimiento
-    res.json({ success: true, message: 'Habitación creada correctamente.' });
-  } catch (error) {
-    console.error('Error al crear habitación:', error);
-    res.status(500).json({ error: 'Error al crear la habitación' });
-  }
-};
+    try {
+      const userId = req.query.userId;
+      const username = req.query.username;
+      const navegador = req.headers['user-agent'] || 'desconocido';
+      const ip = req.ip || req.connection?.remoteAddress || 'desconocida';
+      const pcName = os.hostname();
+
+      await crearHabitacion({
+        ...datos,
+        userId,
+        username,
+        navegador,
+        ip,
+        pcName
+      });
+
+      res.json({ success: true, message: 'Habitación creada correctamente.' });
+    } catch (error) {
+      console.error('Error al crear habitación:', error);
+      res.status(500).json({ error: 'Error al crear la habitación' });
+    }
+  };
 
 //Crear Usuario desde Admin
 const createUserFromAdmin = async (req, res) => {
@@ -83,7 +99,7 @@ const updateUser = async (req, res) => {
     res.status(500).json({ error: "Error al actualizar usuario" });
   }
 };
-//Eliminar Usuario
+// Eliminar Usuario -- trigger 4
 const deleteUser = async (req, res) => {
   const adminId = req.query.userId;
   const { id } = req.params;
@@ -101,11 +117,20 @@ const deleteUser = async (req, res) => {
     });
 
     res.status(200).json({ message: "Usuario eliminado correctamente" });
+
   } catch (err) {
     console.error("Error al eliminar usuario:", err.message);
+
+    // Verifica si el error proviene del trigger que impide eliminar admins - TRIGER 4
+    if (err.message.includes("No se puede eliminar un usuario con rol de administrador")) {
+      return res.status(403).json({ error: "No puedes eliminar un usuario con rol administrador." });
+    }
+
+    // Otros errores
     res.status(500).json({ error: "Error al eliminar usuario" });
   }
 };
+
 //Obtener usuarios paginados
 const getUsuariosPaginados = async (req, res) => {
   try {
@@ -203,6 +228,27 @@ const resetearPassword = async (req, res) => {
   }
 };
 
+//VISTAS 1
+const getVistaPermisosUsuarios = async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM vista_permisos_usuarios');
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error("Error al obtener vista de permisos de usuarios:", error.message);
+    res.status(500).json({ error: "Error al obtener datos" });
+  }
+};
+
+
+const obtenerVistaResumenReservas = async (req, res) => {
+  try {
+    const data = await obtenerVistaResumenReservasService();
+    res.json(data);
+  } catch (error) {
+    console.error("Error al obtener la vista resumen de reservas:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+};
 module.exports = {
   crearHabitacionDesdeProcedimiento ,
   createUserFromAdmin,
@@ -214,5 +260,7 @@ module.exports = {
   getAllUsers,
   getReservasActivasUsuario,
   getIngresosTotales,
-  resetearPassword
+  resetearPassword,
+  getVistaPermisosUsuarios,
+  obtenerVistaResumenReservas  
 };

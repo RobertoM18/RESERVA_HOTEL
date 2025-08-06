@@ -395,3 +395,9 @@ header h1 {
 .modal-content button:hover {
   opacity: 0.9;
 }
+
+.error-msg {
+  color: red;
+  font-weight: bold;
+  margin-bottom: 10px;
+}

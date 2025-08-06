@@ -1,7 +1,14 @@
 const pool = require('../db/connection');
 
 // Crear una habitación - PROCEDIMIENTO 3
-const crearHabitacion = async ({ name, price, ability, imagen, category, type_id }) => {
+// Triggers 2
+const crearHabitacion = async ({ name, price, ability, imagen, category, type_id, userId, username, navegador, ip, pcName }) => {
+  await pool.query(`SELECT set_config('app.current_user_id', $1, false)`, [userId]);
+  await pool.query(`SELECT set_config('app.current_username', $1, false)`, [username]);
+  await pool.query(`SELECT set_config('app.navegador', $1, false)`, [navegador]);
+  await pool.query(`SELECT set_config('app.ip_address', $1, false)`, [ip]);
+  await pool.query(`SELECT set_config('app.pc_name', $1, false)`, [pcName]);
+
   await pool.query(`CALL crear_habitacion_completa($1, $2, $3, $4, $5, $6, $7)`, [
     name,
     price,
