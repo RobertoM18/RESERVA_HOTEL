@@ -238,8 +238,7 @@ const getVistaPermisosUsuarios = async (req, res) => {
     res.status(500).json({ error: "Error al obtener datos" });
   }
 };
-
-
+//VISTAS 2
 const obtenerVistaResumenReservas = async (req, res) => {
   try {
     const data = await obtenerVistaResumenReservasService();

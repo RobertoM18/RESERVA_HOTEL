@@ -30,11 +30,19 @@ const registerGuest = async (req, res) => {
     }
     //trigger 1
     const result = await pool.query(
-      `INSERT INTO guest (first_name, last_name, dni, email, phone, nationality)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING *`,
-      [first_name, last_name, dni, email, phone || null, nationality || null]
-    );
+        `INSERT INTO guest (first_name, last_name, dni, email, phone, nationality)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *`,
+        [
+          first_name?.trim(),
+          last_name?.trim(),
+          dni?.trim(),
+          email?.trim(),
+          phone?.trim() || null,
+          nationality?.trim() || null
+        ]
+      );
+
 
     await registrarBitacora({
       users_id: userId,
@@ -48,7 +56,7 @@ const registerGuest = async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error("Error al registrar huésped:", error.message);
-    res.status(500).json({ error: "Error al registrar huésped" });
+    res.status(400).json({ error: error.message }); // Ahora sí verás "La nacionalidad del huésped es obligatoria"
   }
 };
 
